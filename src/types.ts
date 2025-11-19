@@ -1,10 +1,14 @@
-export type QuestionType = 'multiple-choice' | 'translate' | 'fill-gap'| 'connect';;
+export type QuestionType =
+  | "multiple-choice"
+  | "translate"
+  | "fill-gap"
+  | "connect";
 
 export interface Vocabulary {
   mk: string;
   tr: string;
   en: string;
-  gender?: 'm' | 'f' | 'n';
+  gender?: "m" | "f" | "n";
 }
 
 export interface GrammarTable {
@@ -17,11 +21,11 @@ export interface QuizQuestion {
   id: string;
   type: QuestionType;
   question: string;
-  options?: string[]; 
+  options?: string[];
   correctAnswer?: string;
-  pairs?: { left: string; right: string }[]; 
+  pairs?: { left: string; right: string }[];
   isRecap?: boolean;
-   isRetry?: boolean; 
+  isRetry?: boolean;
 }
 
 export interface Lesson {

@@ -56,16 +56,16 @@ const Flashcard = ({ word }: { word: Vocabulary }) => {
                   word.gender === "m"
                     ? "bg-blue-100 text-blue-600"
                     : word.gender === "f"
-                    ? "bg-pink-100 text-pink-600"
-                    : "bg-green-100 text-green-600"
+                      ? "bg-pink-100 text-pink-600"
+                      : "bg-green-100 text-green-600"
                 }
             `}
             >
               {word.gender === "m"
                 ? "Masculine"
                 : word.gender === "f"
-                ? "Feminine"
-                : "Neuter"}
+                  ? "Feminine"
+                  : "Neuter"}
             </span>
           )}
         </div>
@@ -94,8 +94,8 @@ const WordListItem = ({ word }: { word: Vocabulary }) => (
                   word.gender === "m"
                     ? "bg-blue-50 text-blue-600"
                     : word.gender === "f"
-                    ? "bg-pink-50 text-pink-600"
-                    : "bg-green-50 text-green-600"
+                      ? "bg-pink-50 text-pink-600"
+                      : "bg-green-50 text-green-600"
                 }
             `}
         >

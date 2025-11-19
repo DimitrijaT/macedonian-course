@@ -1,9 +1,9 @@
-import { HashRouter, Routes, Route } from 'react-router-dom';
-import { CourseProvider } from './context/CourseContext';
-import { Dashboard } from './pages/Dashboard';
-import { LessonView } from './pages/LessonView';
-import { QuizView } from './pages/QuizView';
-import { ExamView } from './pages/ExamView';
+import { HashRouter, Routes, Route } from "react-router-dom";
+import { CourseProvider } from "./context/CourseContext";
+import { Dashboard } from "./pages/Dashboard";
+import { LessonView } from "./pages/LessonView";
+import { QuizView } from "./pages/QuizView";
+import { ExamView } from "./pages/ExamView";
 
 export default function App() {
   return (

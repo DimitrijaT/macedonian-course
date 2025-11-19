@@ -54,7 +54,7 @@ export const Dashboard = () => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       setShowJumpBtn(currentScrollY > 300);
-      
+
       if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
         setIsHeaderVisible(false);
       } else {
@@ -70,48 +70,48 @@ export const Dashboard = () => {
   useEffect(() => {
     // Use a small timeout to allow the DOM to render
     const timer = setTimeout(() => {
-        let targetId = null;
+      let targetId = null;
 
-        if (lastViewedLesson) {
-            targetId = lastViewedLesson;
-            setLastViewedLesson(null); 
-        } else {
-            // Find active lesson
-            for (const mod of COURSE_DATA) {
-                for (const l of mod.lessons) {
-                     if (!progress.completedLessons.includes(l.id)) {
-                         targetId = l.id;
-                         break;
-                     }
-                }
-                if (targetId) break;
+      if (lastViewedLesson) {
+        targetId = lastViewedLesson;
+        setLastViewedLesson(null);
+      } else {
+        // Find active lesson
+        for (const mod of COURSE_DATA) {
+          for (const l of mod.lessons) {
+            if (!progress.completedLessons.includes(l.id)) {
+              targetId = l.id;
+              break;
             }
+          }
+          if (targetId) break;
         }
+      }
 
-        if (targetId) {
-            const el = lessonRefs.current.get(targetId);
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+      if (targetId) {
+        const el = lessonRefs.current.get(targetId);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
     }, 100);
-    
+
     return () => clearTimeout(timer);
-  }, [isAdmin]); 
+  }, [isAdmin]);
 
   const jumpToCurrent = () => {
-     let targetId = null;
-     for (const mod of COURSE_DATA) {
-        for (const l of mod.lessons) {
-             if (!progress.completedLessons.includes(l.id)) {
-                 targetId = l.id;
-                 break;
-             }
+    let targetId = null;
+    for (const mod of COURSE_DATA) {
+      for (const l of mod.lessons) {
+        if (!progress.completedLessons.includes(l.id)) {
+          targetId = l.id;
+          break;
         }
-        if (targetId) break;
-     }
-     if (targetId) {
-         const el = lessonRefs.current.get(targetId);
-         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-     }
+      }
+      if (targetId) break;
+    }
+    if (targetId) {
+      const el = lessonRefs.current.get(targetId);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
   };
 
   return (
@@ -289,7 +289,7 @@ export const Dashboard = () => {
                   onClick={() => {
                     if (
                       confirm(
-                        "Are you sure? This will delete all progress and stats."
+                        "Are you sure? This will delete all progress and stats.",
                       )
                     ) {
                       resetProgress();
@@ -365,7 +365,7 @@ export const Dashboard = () => {
                   const prevLessonDone =
                     lessonIndex === 0 ||
                     progress.completedLessons.includes(
-                      mod.lessons[lessonIndex - 1].id
+                      mod.lessons[lessonIndex - 1].id,
                     );
                   const isStandardLocked = isModLocked || !prevLessonDone;
                   const isLocked = !isAdmin && isStandardLocked;
@@ -374,14 +374,16 @@ export const Dashboard = () => {
                     lessonIndex % 2 === 0
                       ? "0px"
                       : lessonIndex % 4 === 1
-                      ? "40px"
-                      : "-40px";
+                        ? "40px"
+                        : "-40px";
 
                   return (
                     <Link
                       key={lesson.id}
                       to={isLocked ? "#" : `/lesson/${mod.id}/${lesson.id}`}
-                      ref={el => { if(el) lessonRefs.current.set(lesson.id, el); }}
+                      ref={(el) => {
+                        if (el) lessonRefs.current.set(lesson.id, el);
+                      }}
                       className={`relative group z-10 flex flex-col items-center ${
                         isLocked ? "cursor-default" : "cursor-pointer"
                       }`}
@@ -399,8 +401,8 @@ export const Dashboard = () => {
                           isDone
                             ? "bg-brand border-brand-dark ring-4 ring-brand/20"
                             : isLocked
-                            ? "bg-gray-100 border-gray-300"
-                            : "bg-white border-gray-200 hover:scale-105 active:scale-95 active:border-b-0 active:translate-y-1.5"
+                              ? "bg-gray-100 border-gray-300"
+                              : "bg-white border-gray-200 hover:scale-105 active:scale-95 active:border-b-0 active:translate-y-1.5"
                         }`}
                       >
                         {isDone ? (
@@ -459,8 +461,8 @@ export const Dashboard = () => {
                     !isAdmin && isModLocked
                       ? "locked"
                       : isModCompleted
-                      ? "outline"
-                      : "danger"
+                        ? "outline"
+                        : "danger"
                   }
                   fullWidth
                   onClick={() =>

@@ -1,6 +1,15 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import type { UserProgress } from '../types';
-import { getProgress, saveProgress as saveToStorage } from '../services/storage';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+} from "react";
+import type { UserProgress } from "../types";
+import {
+  getProgress,
+  saveProgress as saveToStorage,
+} from "../services/storage";
 
 interface ContextType {
   progress: UserProgress;
@@ -10,7 +19,7 @@ interface ContextType {
   passModule: (moduleId: string, xp: number) => void;
   resetProgress: () => void;
   updateStats: (correct: number, incorrect: number, timeToAdd: number) => void;
-  
+
   // NEW: Navigation State
   lastViewedLesson: string | null;
   setLastViewedLesson: (lessonId: string | null) => void;
@@ -18,15 +27,17 @@ interface ContextType {
 
 const CourseContext = createContext<ContextType | undefined>(undefined);
 
-export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [progress, setProgress] = useState<UserProgress>(getProgress());
   const [isAdmin, setIsAdmin] = useState(() => {
-    const stored = localStorage.getItem('mk_admin_mode');
-    return stored === 'true';
+    const stored = localStorage.getItem("mk_admin_mode");
+    return stored === "true";
   });
 
   const sessionStartTime = useRef(Date.now());
-  
+
   // NEW STATE
   const [lastViewedLesson, setLastViewedLesson] = useState<string | null>(null);
 
@@ -35,7 +46,7 @@ export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [progress]);
 
   useEffect(() => {
-    localStorage.setItem('mk_admin_mode', String(isAdmin));
+    localStorage.setItem("mk_admin_mode", String(isAdmin));
   }, [isAdmin]);
 
   useEffect(() => {
@@ -50,37 +61,45 @@ export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return () => clearInterval(interval);
   }, []);
 
-  const toggleAdmin = () => setIsAdmin(prev => !prev);
+  const toggleAdmin = () => setIsAdmin((prev) => !prev);
 
-  const updateStats = (correct: number, incorrect: number, timeToAdd: number) => {
-    setProgress(prev => ({
+  const updateStats = (
+    correct: number,
+    incorrect: number,
+    timeToAdd: number,
+  ) => {
+    setProgress((prev) => ({
       ...prev,
       stats: {
         totalCorrect: prev.stats.totalCorrect + correct,
         totalIncorrect: prev.stats.totalIncorrect + incorrect,
-        timeSpentSeconds: prev.stats.timeSpentSeconds + timeToAdd
-      }
+        timeSpentSeconds: prev.stats.timeSpentSeconds + timeToAdd,
+      },
     }));
   };
 
   const finishLesson = (lessonId: string, xp: number) => {
-    setProgress(prev => {
+    setProgress((prev) => {
       const isNew = !prev.completedLessons.includes(lessonId);
       return {
         ...prev,
-        completedLessons: isNew ? [...prev.completedLessons, lessonId] : prev.completedLessons,
-        xp: prev.xp + (isNew ? xp : Math.floor(xp / 5))
+        completedLessons: isNew
+          ? [...prev.completedLessons, lessonId]
+          : prev.completedLessons,
+        xp: prev.xp + (isNew ? xp : Math.floor(xp / 5)),
       };
     });
   };
 
   const passModule = (moduleId: string, xp: number) => {
-    setProgress(prev => {
+    setProgress((prev) => {
       const isNew = !prev.completedModules.includes(moduleId);
       return {
         ...prev,
-        completedModules: isNew ? [...prev.completedModules, moduleId] : prev.completedModules,
-        xp: prev.xp + (isNew ? xp : 0)
+        completedModules: isNew
+          ? [...prev.completedModules, moduleId]
+          : prev.completedModules,
+        xp: prev.xp + (isNew ? xp : 0),
       };
     });
   };
@@ -90,7 +109,7 @@ export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       completedLessons: [],
       completedModules: [],
       xp: 0,
-      stats: { totalCorrect: 0, totalIncorrect: 0, timeSpentSeconds: 0 }
+      stats: { totalCorrect: 0, totalIncorrect: 0, timeSpentSeconds: 0 },
     };
     setProgress(emptyState);
     saveToStorage(emptyState);
@@ -99,10 +118,19 @@ export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   return (
-    <CourseContext.Provider value={{ 
-        progress, isAdmin, toggleAdmin, finishLesson, passModule, resetProgress, updateStats,
-        lastViewedLesson, setLastViewedLesson // Exported
-    }}>
+    <CourseContext.Provider
+      value={{
+        progress,
+        isAdmin,
+        toggleAdmin,
+        finishLesson,
+        passModule,
+        resetProgress,
+        updateStats,
+        lastViewedLesson,
+        setLastViewedLesson, // Exported
+      }}
+    >
       {children}
     </CourseContext.Provider>
   );

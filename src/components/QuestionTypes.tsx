@@ -1,10 +1,6 @@
-import {
-    Check,
-    GripHorizontal,
-    MessageCircle
-} from "lucide-react";
+import { Check, GripHorizontal, MessageCircle } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { QuizQuestion } from "../types";
+import type { QuizQuestion } from "../types";
 
 interface QuestionProps {
   question: QuizQuestion;
@@ -84,10 +80,10 @@ const ConnectQuestion = ({
   onComplete: (isSuccess: boolean) => void;
 }) => {
   const [leftItems, setLeftItems] = useState<{ text: string; id: number }[]>(
-    []
+    [],
   );
   const [rightItems, setRightItems] = useState<{ text: string; id: number }[]>(
-    []
+    [],
   );
 
   const [selectedLeft, setSelectedLeft] = useState<number | null>(null);
@@ -107,12 +103,12 @@ const ConnectQuestion = ({
       setLeftItems(
         [...labeledPairs]
           .sort(() => Math.random() - 0.5)
-          .map((p) => ({ text: p.left, id: p.id }))
+          .map((p) => ({ text: p.left, id: p.id })),
       );
       setRightItems(
         [...labeledPairs]
           .sort(() => Math.random() - 0.5)
-          .map((p) => ({ text: p.right, id: p.id }))
+          .map((p) => ({ text: p.right, id: p.id })),
       );
       setMatchedIds([]);
     }
