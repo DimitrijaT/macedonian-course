@@ -1,0 +1,1463 @@
+import type { Module, Lesson, QuizQuestion, Vocabulary, GrammarTable } from '../types';
+import { createGrammarQuestions } from '../utils/questionGenerator';
+
+
+
+const createConnectQuestion = (vocab: Vocabulary[], lessonId: string): QuizQuestion | null => {
+  if (vocab.length < 4) return null;
+  const shuffledVocab = [...vocab].sort(() => Math.random() - 0.5).slice(0, 4);
+  return {
+    id: `${lessonId}_connect_auto`,
+    type: 'connect',
+    question: 'Match the words',
+    pairs: shuffledVocab.map(v => ({ left: v.mk, right: v.en }))
+  };
+};
+
+// --- EXAM GENERATOR LOGIC ---
+const createExam = (lessons: Lesson[], modId: string): QuizQuestion[] => {
+  let questions: QuizQuestion[] = [];
+  
+  lessons.forEach(l => {
+    // Add standard questions
+    questions.push(...l.quiz);
+    
+    // Add a connect question for the exam too? Optional. 
+    // Usually exams are standard formats, but we can add one.
+    const extra = createGrammarQuestions(l.grammarTables, `${modId}_exam_${l.id}`);
+    if (extra.length > 0) {
+      questions.push(...extra);
+    }
+    const connectQ = createConnectQuestion(l.vocabulary, `${modId}_exam_${l.id}`);
+    if(connectQ) questions.push(connectQ);
+  });
+  
+  // Shuffle and slice
+  return questions.sort(() => Math.random() - 0.5).slice(0, 25);
+};
+
+const RAW_MODULES: Omit<Module, 'exam'>[] = [
+  {
+    id: 'mod_1',
+    title: '🐣 Module 1: The Cyrillic Code',
+    description: 'Unlock the alphabet. Read real words from day one.',
+    lessons: [
+      {
+        id: 'l1_easy_letters',
+        title: 'Level 1: The True Friends',
+        theory: [
+          "**Welcome to Macedonian!** The best thing about this language is that it is **100% phonetic**. This means you read exactly what you see. One letter always makes the same sound. No exceptions.",
+          "Let's start with the letters that are identical to English. These are your 'True Friends'.",
+          "**A, E, K, M, O, T** look and sound exactly like they do in English.",
+          "---",
+          "We also have **J**, but it doesn't sound like 'Jump'. It sounds soft, like the **Y** in 'Yes' or 'Boy'.",
+          "And finally, **I** sounds like 'ee' in 'Feet' or 'See'."
+        ],
+        vocabulary: [
+          { mk: 'Мама', tr: 'Mama', en: 'Mom' },
+          { mk: 'Тато', tr: 'Tato', en: 'Dad' },
+          { mk: 'Како', tr: 'Kako', en: 'How' },
+          { mk: 'Око', tr: 'Oko', en: 'Eye' },
+          { mk: 'Тој', tr: 'Toj', en: 'He' },
+          { mk: 'Јас', tr: 'Jas', en: 'I (me)' },
+          { mk: 'Такси', tr: 'Taksi', en: 'Taxi' },
+          { mk: 'Какао', tr: 'Kakao', en: 'Cocoa' }
+        ],
+        grammarTables: [
+          {
+            title: 'The Easy 8',
+            headers: ['Cyrillic', 'Sound', 'English Approx'],
+            rows: [
+              ['А а', 'Ah', 'F**a**ther'],
+              ['Е е', 'Eh', 'B**e**d'],
+              ['И и', 'Ee', 'M**ee**t'],
+              ['О о', 'Oh', 'H**o**t'],
+              ['К к', 'K', 'S**k**ip'],
+              ['М м', 'M', 'No**m**'],
+              ['Т т', 'T', 'S**t**op'],
+              ['Ј ј', 'Y', 'Ye**s**']
+            ]
+          }
+        ],
+        quiz: [
+          { id: 'q1_1', type: 'multiple-choice', question: 'Which letter sounds like "Y" in "Yes"?', options: ['Ј', 'И', 'Е', 'У'], correctAnswer: 'Ј' },
+          { id: 'q1_2', type: 'translate', question: 'Mom', options: ['Мама', 'Тато', 'Баба', 'Дедо'], correctAnswer: 'Мама' },
+          { id: 'q1_3', type: 'fill-gap', question: '___ (Dad) is home.', options: ['Тато', 'Мама', 'Око', 'Како'], correctAnswer: 'Тато' },
+          { id: 'q1_4', type: 'translate', question: 'Eye', options: ['Око', 'Уво', 'Нос', 'Уста'], correctAnswer: 'Око' },
+          { id: 'q1_5', type: 'multiple-choice', question: 'How do you read "Како"?', options: ['Kako', 'Koko', 'Kaka', 'Kiku'], correctAnswer: 'Kako' },
+          { id: 'q1_6', type: 'translate', question: 'I (me)', options: ['Јас', 'Ти', 'Тој', 'Ние'], correctAnswer: 'Јас' },
+          { id: 'q1_7', type: 'multiple-choice', question: 'What sound does "И" make?', options: ['EE (Feet)', 'I (Ice)', 'E (Bed)', 'A (Apple)'], correctAnswer: 'EE (Feet)' },
+          { id: 'q1_8', type: 'translate', question: 'He', options: ['Тој', 'Таа', 'Тоа', 'Тие'], correctAnswer: 'Тој' },
+          { id: 'q1_9', type: 'fill-gap', question: 'Сакам ___ (cocoa).', options: ['какао', 'кафе', 'чај', 'млеко'], correctAnswer: 'какао' },
+          { id: 'q1_10', type: 'translate', question: 'Taxi', options: ['Такси', 'Автобус', 'Кола', 'Возило'], correctAnswer: 'Такси' },
+          
+        ]
+      },
+      {
+        id: 'l2_false_friends',
+        title: 'Level 2: The Tricksters',
+        theory: [
+          "Now for the tricky part. These letters look like English letters, but they make completely different sounds! We call them 'False Friends'.",
+          "**В** looks like 'B', but it makes the **V** sound (as in **V**ictory).",
+          "**Н** looks like 'H', but it makes the **N** sound (as in **N**o).",
+          "**Р** looks like 'P', but it makes the **R** sound (Rolled R, like in Spanish or Russian).",
+          "---",
+          "**С** looks like 'C', but it always makes the **S** sound (as in **S**nake). Never 'K' like in 'Cat'.",
+          "**У** looks like 'Y', but it makes the **OO** sound (as in B**oo**t or M**oo**n).",
+          "**Х** looks like 'X', but it makes the **H** sound (as in **H**ouse). It is a strong H, almost like a gentle throat clear."
+        ],
+        vocabulary: [
+          { mk: 'Нос', tr: 'Nos', en: 'Nose' },
+          { mk: 'Уво', tr: 'Uvo', en: 'Ear' },
+          { mk: 'Рака', tr: 'Raka', en: 'Hand/Arm' },
+          { mk: 'Врата', tr: 'Vrata', en: 'Door' },
+          { mk: 'Сестра', tr: 'Sestra', en: 'Sister' },
+          { mk: 'Хотел', tr: 'Hotel', en: 'Hotel' },
+          { mk: 'Ресторан', tr: 'Restoran', en: 'Restaurant' },
+          { mk: 'Торта', tr: 'Torta', en: 'Cake' }
+        ],
+        grammarTables: [
+          {
+            title: 'The Tricksters',
+            headers: ['Cyrillic', 'Looks Like', 'ACTUALLY Sounds Like'],
+            rows: [
+              ['В в', 'B', 'V (Victory)'],
+              ['Н н', 'H', 'N (November)'],
+              ['Р р', 'P', 'R (Run)'],
+              ['С с', 'C', 'S (Sun)'],
+              ['У у', 'Y', 'OO (Moon)'],
+              ['Х х', 'X', 'H (House)']
+            ]
+          }
+        ],
+        quiz: [
+          { id: 'q2_1', type: 'multiple-choice', question: 'Sound of "Р"?', options: ['R (Run)', 'P (Pen)', 'D (Dog)', 'B (Bat)'], correctAnswer: 'R (Run)' },
+          { id: 'q2_2', type: 'translate', question: 'Nose', options: ['Нос', 'Нас', 'Нес', 'Ние'], correctAnswer: 'Нос' },
+          { id: 'q2_3', type: 'translate', question: 'Sister', options: ['Сестра', 'Мама', 'Баба', 'Тетка'], correctAnswer: 'Сестра' },
+          { id: 'q2_4', type: 'fill-gap', question: 'Ова е мојата ___ (hand).', options: ['рака', 'врата', 'река', 'риба'], correctAnswer: 'рака' },
+          { id: 'q2_5', type: 'multiple-choice', question: 'Letter for "N"?', options: ['Н', 'Х', 'П', 'И'], correctAnswer: 'Н' },
+          { id: 'q2_6', type: 'translate', question: 'Ear', options: ['Уво', 'Око', 'Нос', 'Уста'], correctAnswer: 'Уво' },
+          { id: 'q2_7', type: 'translate', question: 'Door', options: ['Врата', 'Зграда', 'Соба', 'Куќа'], correctAnswer: 'Врата' },
+          { id: 'q2_8', type: 'fill-gap', question: 'Сакам ___ (cake).', options: ['торта', 'леб', 'сирење', 'месо'], correctAnswer: 'торта' },
+          { id: 'q2_9', type: 'translate', question: 'Restaurant', options: ['Ресторан', 'Хотел', 'Кафе', 'Бар'], correctAnswer: 'Ресторан' },
+          { id: 'q2_10', type: 'multiple-choice', question: 'Which letter is "V"?', options: ['В', 'Б', 'Ф', 'У'], correctAnswer: 'В' }
+        ]
+      },
+      {
+        id: 'l3_standard_consonants',
+        title: 'Level 3: New Shapes',
+        theory: [
+          "These letters are new shapes you haven't seen before, but they make standard sounds you already know.",
+          "**Б (B)** looks like a number 6 or a small 'b' with a flat roof.",
+          "**Г (G)** looks like a gun or a corner. It is always a HARD G (like **G**old), never soft like 'Giraffe'.",
+          "**Д (D)** looks like a little table with legs.",
+          "**З (Z)** looks like the number 3. It sounds like **Z**oo.",
+          "---",
+          "**Л (L)** looks like an open tent or an upside down V.",
+          "**П (P)** looks like the mathematical symbol Pi (π) or a goal post.",
+          "**Ф (F)** looks like a circle with a line through it. It makes the **F** sound."
+        ],
+        vocabulary: [
+          { mk: 'Баба', tr: 'Baba', en: 'Grandma' },
+          { mk: 'Дедо', tr: 'Dedo', en: 'Grandpa' },
+          { mk: 'Брат', tr: 'Brat', en: 'Brother' },
+          { mk: 'Град', tr: 'Grad', en: 'City' },
+          { mk: 'Парк', tr: 'Park', en: 'Park' },
+          { mk: 'Филм', tr: 'Film', en: 'Movie' },
+          { mk: 'Ламба', tr: 'Lamba', en: 'Lamp' },
+          { mk: 'Бар', tr: 'Bar', en: 'Bar' }
+        ],
+        grammarTables: [],
+        quiz: [
+          { id: 'q3_1', type: 'translate', question: 'Grandma', options: ['Баба', 'Дедо', 'Мама', 'Сестра'], correctAnswer: 'Баба' },
+          { id: 'q3_2', type: 'translate', question: 'City', options: ['Град', 'Село', 'Парк', 'Пат'], correctAnswer: 'Град' },
+          { id: 'q3_3', type: 'multiple-choice', question: 'Translate "Брат".', options: ['Brother', 'Sister', 'Dad', 'Friend'], correctAnswer: 'Brother' },
+          { id: 'q3_4', type: 'fill-gap', question: 'Гледам ___ (movie).', options: ['филм', 'парк', 'злато', 'град'], correctAnswer: 'филм' },
+          { id: 'q3_5', type: 'multiple-choice', question: 'Sound of "З"?', options: ['Z', 'Zh', 'S', 'Ts'], correctAnswer: 'Z' },
+          { id: 'q3_6', type: 'translate', question: 'Grandpa', options: ['Дедо', 'Тато', 'Чичко', 'Баба'], correctAnswer: 'Дедо' },
+          { id: 'q3_7', type: 'fill-gap', question: 'Ова е ___ (lamp).', options: ['ламба', 'маса', 'соба', 'врата'], correctAnswer: 'ламба' },
+          { id: 'q3_8', type: 'multiple-choice', question: 'Letter for "G"?', options: ['Г', 'Л', 'Ф', 'Т'], correctAnswer: 'Г' },
+          { id: 'q3_9', type: 'translate', question: 'Park', options: ['Парк', 'Шума', 'Двор', 'Градина'], correctAnswer: 'Парк' },
+          { id: 'q3_10', type: 'multiple-choice', question: 'Sound of "Ф"?', options: ['F', 'V', 'P', 'B'], correctAnswer: 'F' }
+        ]
+      },
+      {
+        id: 'l4_slavic_sounds',
+        title: 'Level 4: Sh, Zh, Ch, Ts',
+        theory: [
+          "Now for the uniquely Slavic sounds. In English, you often need two letters to make these sounds (like SH or CH). In Macedonian, we use just one letter!",
+          "**Ш (Sh)**: Looks like a pitchfork or the letter W. It sounds like **Sh**oe or **Sh**ed.",
+          "**Ж (Zh)**: Looks like a bug or a star. It sounds like the 's' in Mea**s**ure, Vi**s**ion, or Pleasu**re**.",
+          "---",
+          "**Ч (Ch)**: Looks like an upside-down chair or the number 4. It sounds like **Ch**ip or **Ch**eese.",
+          "**Ц (Ts)**: Looks like a U with a little tail. It makes the **TS** sound, like in Pi**zz**a or Ca**ts**. It is NOT a K sound."
+        ],
+        vocabulary: [
+          { mk: 'Шума', tr: 'Shuma', en: 'Forest' },
+          { mk: 'Жолт', tr: 'Zholt', en: 'Yellow' },
+          { mk: 'Чај', tr: 'Chaj', en: 'Tea' },
+          { mk: 'Чичко', tr: 'Chichko', en: 'Uncle' },
+          { mk: 'Цвет', tr: 'Cvet', en: 'Flower' },
+          { mk: 'Сонце', tr: 'Sonce', en: 'Sun' },
+          { mk: 'Живот', tr: 'Zhivot', en: 'Life' },
+          { mk: 'Чао', tr: 'Chao', en: 'Bye' }
+        ],
+        grammarTables: [],
+        quiz: [
+          { id: 'q4_1', type: 'multiple-choice', question: 'Sound of "Ш"?', options: ['Sh', 'Zh', 'Ch', 'Ts'], correctAnswer: 'Sh' },
+          { id: 'q4_2', type: 'translate', question: 'Yellow', options: ['Жолт', 'Зелен', 'Црвен', 'Син'], correctAnswer: 'Жолт' },
+          { id: 'q4_3', type: 'translate', question: 'Tea', options: ['Чај', 'Кафе', 'Сок', 'Вода'], correctAnswer: 'Чај' },
+          { id: 'q4_4', type: 'fill-gap', question: 'Ова е убав ___ (flower).', options: ['цвет', 'свет', 'лет', 'пет'], correctAnswer: 'цвет' },
+          { id: 'q4_5', type: 'multiple-choice', question: 'Sound of "Ц"?', options: ['TS', 'K', 'S', 'CH'], correctAnswer: 'TS' },
+          { id: 'q4_6', type: 'translate', question: 'Uncle', options: ['Чичко', 'Дедо', 'Брат', 'Татко'], correctAnswer: 'Чичко' },
+          { id: 'q4_7', type: 'translate', question: 'Sun', options: ['Сонце', 'Месечина', 'Ѕвезда', 'Облак'], correctAnswer: 'Сонце' },
+          { id: 'q4_8', type: 'fill-gap', question: 'Одиме во ___ (forest).', options: ['шума', 'парк', 'град', 'село'], correctAnswer: 'шума' },
+          { id: 'q4_9', type: 'translate', question: 'Life', options: ['Живот', 'Смрт', 'Љубов', 'Среќа'], correctAnswer: 'Живот' },
+          { id: 'q4_10', type: 'translate', question: 'Bye', options: ['Чао', 'Здраво', 'Добро', 'Фала'], correctAnswer: 'Чао' }
+        ]
+      },
+      {
+        id: 'l5_soft_weird',
+        title: 'Level 5: The Soft Sounds',
+        theory: [
+          "The final boss level of the alphabet! These are the 'Soft' or 'Palatal' sounds.",
+          "**Ѓ (Gy)**: A soft G. Sounds like the 'gu' in Ar**gu**e.",
+          "**Ќ (Ky)**: A soft K. Sounds like the 'cu' in **Cu**te.",
+          "**Љ (Ly)**: A soft L. Sounds like the 'lli' in Mi**lli**on.",
+          "**Њ (Ny)**: A soft N. Sounds like the 'ni' in O**ni**on or the Spanish Ñ.",
+          "---",
+          "**Џ (J)**: A hard J. Sounds like **J**ungle or **J**am.",
+          "**Ѕ (Dz)**: A very rare sound! It sounds like 'Dze'. Think of the buzzing sound of a mosquito zapper, or the 'ds' in Ki**ds**."
+        ],
+        vocabulary: [
+          { mk: 'Куќа', tr: 'Kukja', en: 'House' },
+          { mk: 'Ноќ', tr: 'Nokj', en: 'Night' },
+          { mk: 'Луѓе', tr: 'Lugje', en: 'People' },
+          { mk: 'Љубов', tr: 'Ljubov', en: 'Love' },
+          { mk: 'Коњ', tr: 'Konj', en: 'Horse' },
+          { mk: 'Џеб', tr: 'Dzheb', en: 'Pocket' },
+          { mk: 'Ѕид', tr: 'Dzid', en: 'Wall' },
+          { mk: 'Ѕвезда', tr: 'Dzvezda', en: 'Star' }
+        ],
+        grammarTables: [],
+        quiz: [
+          { id: 'q5_1', type: 'translate', question: 'House', options: ['Куќа', 'Зграда', 'Стан', 'Вила'], correctAnswer: 'Куќа' },
+          { id: 'q5_2', type: 'translate', question: 'Love', options: ['Љубов', 'Мраза', 'Среќа', 'Тага'], correctAnswer: 'Љубов' },
+          { id: 'q5_3', type: 'fill-gap', question: 'Добра ___ (night).', options: ['ноќ', 'ден', 'утро', 'вечер'], correctAnswer: 'ноќ' },
+          { id: 'q5_4', type: 'multiple-choice', question: 'Sound of "Џ"?', options: ['J (Jungle)', 'Zh (Vision)', 'G (Go)', 'Dy (Dew)'], correctAnswer: 'J (Jungle)' },
+          { id: 'q5_5', type: 'translate', question: 'Wall', options: ['Ѕид', 'Под', 'Таван', 'Врата'], correctAnswer: 'Ѕид' },
+          { id: 'q5_6', type: 'translate', question: 'Horse', options: ['Коњ', 'Магаре', 'Куче', 'Маче'], correctAnswer: 'Коњ' },
+          { id: 'q5_7', type: 'fill-gap', question: 'Има многу ___ (people).', options: ['луѓе', 'деца', 'мажи', 'жени'], correctAnswer: 'луѓе' },
+          { id: 'q5_8', type: 'translate', question: 'Star', options: ['Ѕвезда', 'Сонце', 'Месечина', 'Небо'], correctAnswer: 'Ѕвезда' },
+          { id: 'q5_9', type: 'translate', question: 'Pocket', options: ['Џеб', 'Чанта', 'Капа', 'Ракав'], correctAnswer: 'Џеб' },
+          { id: 'q5_10', type: 'multiple-choice', question: 'Sound of "Њ"?', options: ['Ny (Onion)', 'N (No)', 'Ng (Song)', 'M (Mom)'], correctAnswer: 'Ny (Onion)' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'mod_2',
+    title: '👤 Module 2: Identities',
+    description: 'Introduce yourself, ask questions, and read your first story.',
+    lessons: [
+      {
+        id: 'm2_l1_pronouns',
+        title: 'Level 1: I, You, He',
+        theory: [
+          "To speak, you need to refer to people. These are the **Subject Pronouns**.",
+          "**Јас (Jas)** = I. It rhymes with 'Bus'.",
+          "**Ти (Ti)** = You (Informal). Use this with friends, family, and children.",
+          "---",
+          "For the third person (He/She/It), gender matters!",
+          "**Тој (Toj)** = He.",
+          "**Таа (Taa)** = She.",
+          "**Тоа (Toa)** = It. (Used for objects and small children)."
+        ],
+        vocabulary: [
+          { mk: 'Јас', tr: 'Jas', en: 'I' },
+          { mk: 'Ти', tr: 'Ti', en: 'You' },
+          { mk: 'Тој', tr: 'Toj', en: 'He' },
+          { mk: 'Таа', tr: 'Taa', en: 'She' },
+          { mk: 'Маж', tr: 'Mazh', en: 'Man' },
+          { mk: 'Жена', tr: 'Zhena', en: 'Woman' },
+          { mk: 'Дете', tr: 'Dete', en: 'Child' }
+        ],
+        grammarTables: [
+          {
+            title: 'Singular Pronouns',
+            headers: ['Person', 'MK', 'EN'],
+            rows: [
+              ['1st', 'Јас', 'I'],
+              ['2nd', 'Ти', 'You'],
+              ['3rd', 'Тој/Таа/Тоа', 'He/She/It']
+            ]
+          }
+        ],
+        quiz: [
+          { id: 'q21_1', type: 'translate', question: 'She', options: ['Таа', 'Тој', 'Ти', 'Јас'], correctAnswer: 'Таа' },
+          { id: 'q21_2', type: 'translate', question: 'I', options: ['Јас', 'Ти', 'Тој', 'Ние'], correctAnswer: 'Јас' },
+          { id: 'q21_3', type: 'fill-gap', question: '___ (He) is here.', options: ['Тој', 'Таа', 'Тоа', 'Ти'], correctAnswer: 'Тој' },
+          { id: 'q21_4', type: 'translate', question: 'Woman', options: ['Жена', 'Маж', 'Дете', 'Човек'], correctAnswer: 'Жена' },
+          { id: 'q21_5', type: 'translate', question: 'Man', options: ['Маж', 'Жена', 'Дете', 'Дедо'], correctAnswer: 'Маж' },
+          { id: 'q21_6', type: 'multiple-choice', question: 'Pronoun for "It"?', options: ['Тоа', 'Таа', 'Ти', 'Тој'], correctAnswer: 'Тоа' },
+          { id: 'q21_7', type: 'translate', question: 'Child', options: ['Дете', 'Бебе', 'Сине', 'Ќерка'], correctAnswer: 'Дете' },
+          { id: 'q21_8', type: 'fill-gap', question: 'Ова е ___ (she).', options: ['Таа', 'Тој', 'Тоа', 'Ти'], correctAnswer: 'Таа' },
+          { id: 'q21_9', type: 'multiple-choice', question: 'Translate "You" (Informal)', options: ['Ти', 'Вие', 'Ние', 'Тие'], correctAnswer: 'Ти' },
+          { id: 'q21_10', type: 'translate', question: 'Dad', options: ['Тато', 'Мама', 'Брат', 'Сестра'], correctAnswer: 'Тато' }
+        ]
+      },
+      {
+        id: 'm2_l2_sum',
+        title: 'Level 2: Being Someone',
+        theory: [
+          "The most important verb in any language is 'To Be'. In Macedonian, it is **Сум (Sum)**.",
+          "Here is how we conjugate it for singular persons:",
+          "**Јас сум** = I am.",
+          "**Ти си** = You are.",
+          "**Тој е / Таа е** = He is / She is.",
+          "---",
+          "**Pro Tip:** In Macedonian, we often drop the 'Jas'. Because 'sum' is unique to 'I', saying just '**Sum Marko**' is perfectly clear and very natural."
+        ],
+        vocabulary: [
+          { mk: 'Сум', tr: 'Sum', en: 'Am' },
+          { mk: 'Си', tr: 'Si', en: 'Are (sg)' },
+          { mk: 'Е', tr: 'E', en: 'Is' },
+          { mk: 'Среќен', tr: 'Srekjen', en: 'Happy' },
+          { mk: 'Тажен', tr: 'Tazhen', en: 'Sad' },
+          { mk: 'Уморен', tr: 'Umoren', en: 'Tired' },
+          { mk: 'Гладен', tr: 'Gladen', en: 'Hungry' }
+        ],
+        grammarTables: [
+          {
+            title: 'Sum (Singular)',
+            headers: ['Pronoun', 'Verb', 'Meaning'],
+            rows: [
+              ['Јас', 'Сум', 'I am'],
+              ['Ти', 'Си', 'You are'],
+              ['Тој / Таа', 'Е', 'He / She is']
+            ]
+          }
+        ],
+        quiz: [
+          { id: 'q22_1', type: 'fill-gap', question: 'Ти ___ (are) среќен.', options: ['си', 'сум', 'е', 'сме'], correctAnswer: 'си' },
+          { id: 'q22_2', type: 'translate', question: 'He is', options: ['Тој е', 'Тој си', 'Тој сум', 'Тој се'], correctAnswer: 'Тој е' },
+          { id: 'q22_3', type: 'translate', question: 'I am tired.', options: ['Јас сум уморен', 'Јас си уморен', 'Јас е уморен', 'Јас се уморен'], correctAnswer: 'Јас сум уморен' },
+          { id: 'q22_4', type: 'fill-gap', question: 'Таа ___ (is) гладна.', options: ['е', 'си', 'сум', 'сте'], correctAnswer: 'е' },
+          { id: 'q22_5', type: 'translate', question: 'Sad', options: ['Тажен', 'Среќен', 'Уморен', 'Болен'], correctAnswer: 'Тажен' },
+          { id: 'q22_6', type: 'fill-gap', question: 'Јас ___ (am) Марко.', options: ['сум', 'си', 'е', 'сме'], correctAnswer: 'сум' },
+          { id: 'q22_7', type: 'multiple-choice', question: 'Correct form: "Тој ___"', options: ['е', 'си', 'сум', 'се'], correctAnswer: 'е' },
+          { id: 'q22_8', type: 'translate', question: 'Hungry', options: ['Гладен', 'Жеден', 'Сит', 'Пун'], correctAnswer: 'Гладен' },
+          { id: 'q22_9', type: 'translate', question: 'Happy', options: ['Среќен', 'Тажен', 'Лут', 'Мирен'], correctAnswer: 'Среќен' },
+          { id: 'q22_10', type: 'fill-gap', question: 'Ти ___ (are) убав.', options: ['си', 'сум', 'е', 'сте'], correctAnswer: 'си' }
+        ]
+      },
+      {
+        id: 'm2_l3_story',
+        title: 'Level 3: Story - Meet Marko',
+        theory: [
+          "📖 **Mini-Story Time!**",
+          "Read the text below carefully. The words marked in **bold** are new, but try to guess them from context!",
+          "---",
+          "**Здраво!** (Hello!)",
+          "**Јас сум Марко.** (I am Marko.)",
+          "**Јас сум од Скопје.** (I am **from** Skopje.)",
+          "---",
+          "**Ова е тато.** (This is dad.)",
+          "**Тој е таксист.** (He is a taxi driver.)",
+          "**Таа е мама.** (She is mom.)",
+          "**Таа е доктор.** (She is a doctor.)",
+          "**Ние сме среќни.** (We are happy.)"
+        ],
+        vocabulary: [
+          { mk: 'Од', tr: 'Od', en: 'From' },
+          { mk: 'Скопје', tr: 'Skopje', en: 'Skopje (Capital)' },
+          { mk: 'Таксист', tr: 'Taksist', en: 'Taxi Driver' },
+          { mk: 'Доктор', tr: 'Doktor', en: 'Doctor' },
+          { mk: 'Среќни', tr: 'Srekjni', en: 'Happy (Plural)' }
+        ],
+        grammarTables: [],
+        quiz: [
+          { id: 'q23_1', type: 'multiple-choice', question: 'What does "Скопје" refer to?', options: ['Capital City', 'River', 'Mountain', 'Country'], correctAnswer: 'Capital City' },
+          { id: 'q23_2', type: 'fill-gap', question: 'Јас сум ___ (from) Македонија.', options: ['од', 'на', 'во', 'со'], correctAnswer: 'од' },
+          { id: 'q23_3', type: 'translate', question: 'He is a taxi driver.', options: ['Тој е таксист', 'Тој е доктор', 'Тој е професор', 'Тој е полицаец'], correctAnswer: 'Тој е таксист' },
+          { id: 'q23_4', type: 'translate', question: 'She is a doctor.', options: ['Таа е доктор', 'Тој е доктор', 'Јас сум доктор', 'Ти си доктор'], correctAnswer: 'Таа е доктор' },
+          { id: 'q23_5', type: 'translate', question: 'We are happy.', options: ['Ние сме среќни', 'Ние сме тажни', 'Вие сте среќни', 'Тие се среќни'], correctAnswer: 'Ние сме среќни' },
+          { id: 'q23_6', type: 'multiple-choice', question: 'What does "Среќни" mean?', options: ['Happy (Plural)', 'Sad (Plural)', 'Tired (Plural)', 'Hungry (Plural)'], correctAnswer: 'Happy (Plural)' },
+          { id: 'q23_7', type: 'fill-gap', question: 'Ова е ___ (dad).', options: ['тато', 'мама', 'дедо', 'баба'], correctAnswer: 'тато' },
+          { id: 'q23_8', type: 'translate', question: 'Hello', options: ['Здраво', 'Чао', 'Добро', 'Фала'], correctAnswer: 'Здраво' },
+          { id: 'q23_9', type: 'fill-gap', question: '___ (This) е мама.', options: ['Ова', 'Овој', 'Она', 'Тука'], correctAnswer: 'Ова' },
+          { id: 'q23_10', type: 'multiple-choice', question: 'Тие ___ (are) учители.', options: ['се', 'сме', 'сте', 'си'], correctAnswer: 'се' }
+        ]
+      },
+      {
+        id: 'm2_l4_plural',
+        title: 'Level 4: We, You, They',
+        theory: [
+          "Now let's talk about groups of people.",
+          "**Ние (Nie)** = We.",
+          "**Вие (Vie)** = You (Plural). Used for a group of people. **Important:** It is also used for **Formal** speech (talking to a boss, elder, or stranger).",
+          "**Тие (Tie)** = They. (Used for any gender group).",
+          "---",
+          "**The Verbs:**",
+          "**Ние сме** (We are).",
+          "**Вие сте** (You are).",
+          "**Тие се** (They are). Careful with 'Se' - it's pronounced like 'seh', not 'see'."
+        ],
+        vocabulary: [
+          { mk: 'Ние', tr: 'Nie', en: 'We' },
+          { mk: 'Вие', tr: 'Vie', en: 'You (pl)' },
+          { mk: 'Тие', tr: 'Tie', en: 'They' },
+          { mk: 'Пријатели', tr: 'Prijateli', en: 'Friends' },
+          { mk: 'Семејство', tr: 'Semejstvo', en: 'Family' },
+          { mk: 'Тука', tr: 'Tuka', en: 'Here' },
+          { mk: 'Таму', tr: 'Tamu', en: 'There' }
+        ],
+        grammarTables: [
+          {
+            title: 'Sum (Plural)',
+            headers: ['Person', 'Verb', 'Meaning'],
+            rows: [
+              ['Ние', 'Сме', 'We are'],
+              ['Вие', 'Сте', 'You are'],
+              ['Тие', 'Се', 'They are']
+            ]
+          }
+        ],
+        quiz: [
+          { id: 'q24_1', type: 'translate', question: 'We are friends.', options: ['Ние сме пријатели', 'Ние сте пријатели', 'Ние се пријатели', 'Тие се пријатели'], correctAnswer: 'Ние сме пријатели' },
+          { id: 'q24_2', type: 'fill-gap', question: 'Тие ___ (are) тука.', options: ['се', 'сме', 'сте', 'е'], correctAnswer: 'се' },
+          { id: 'q24_3', type: 'translate', question: 'You (Formal) are', options: ['Вие сте', 'Вие сме', 'Вие се', 'Ти си'], correctAnswer: 'Вие сте' },
+          { id: 'q24_4', type: 'translate', question: 'Family', options: ['Семејство', 'Пријатели', 'Луѓе', 'Роднини'], correctAnswer: 'Семејство' },
+          { id: 'q24_5', type: 'fill-gap', question: 'Ние ___ (are) семејство.', options: ['сме', 'сте', 'се', 'си'], correctAnswer: 'сме' },
+          { id: 'q24_6', type: 'multiple-choice', question: 'Translate "There"', options: ['Таму', 'Тука', 'Овде', 'Каде'], correctAnswer: 'Таму' },
+          { id: 'q24_7', type: 'translate', question: 'They', options: ['Тие', 'Ние', 'Вие', 'Тој'], correctAnswer: 'Тие' },
+          { id: 'q24_8', type: 'fill-gap', question: 'Каде ___ (are) вие?', options: ['сте', 'сме', 'се', 'си'], correctAnswer: 'сте' },
+          { id: 'q24_9', type: 'translate', question: 'Here', options: ['Тука', 'Таму', 'Далеку', 'Блиску'], correctAnswer: 'Тука' },
+          { id: 'q24_10', type: 'multiple-choice', question: 'Which is "We"?', options: ['Ние', 'Вие', 'Тие', 'Јас'], correctAnswer: 'Ние' }
+        ]
+      },
+      {
+        id: 'm2_l5_review',
+        title: 'Level 5: Identity Review',
+        theory: [
+          "Let's put everything together to have a basic conversation.",
+          "To introduce yourself: **Zdravo, jas sum...** (Hello, I am...)",
+          "To ask a name: **Kako e tvoeto ime?** (How is your name?)",
+          "To ask who someone is: **Koj si ti?** (Who are you?)",
+          "To ask how someone is: **Kako si?** (How are you?)",
+          "To ask what something is: **Što e ova?** (What is this?)"
+        ],
+        vocabulary: [
+          { mk: 'Кој', tr: 'Koj', en: 'Who' },
+          { mk: 'Што', tr: 'Shto', en: 'What' },
+          { mk: 'Име', tr: 'Ime', en: 'Name' },
+          { mk: 'Презиме', tr: 'Prezime', en: 'Surname' },
+          { mk: 'Добро', tr: 'Dobro', en: 'Good/Fine' },
+          { mk: 'Лошо', tr: 'Losho', en: 'Bad' }
+        ],
+        grammarTables: [],
+        quiz: [
+          { id: 'q25_1', type: 'translate', question: 'Who are you?', options: ['Кој си ти?', 'Што си ти?', 'Каде си ти?', 'Како си ти?'], correctAnswer: 'Кој си ти?' },
+          { id: 'q25_2', type: 'translate', question: 'My name is...', options: ['Моето име е...', 'Моето презиме е...', 'Јас сум...', 'Ти си...'], correctAnswer: 'Моето име е...' },
+          { id: 'q25_3', type: 'fill-gap', question: 'Како ___ (are) ти?', options: ['си', 'сум', 'е', 'сте'], correctAnswer: 'си' },
+          { id: 'q25_4', type: 'translate', question: 'I am fine (good).', options: ['Јас сум добро', 'Јас сум лошо', 'Јас сум тажен', 'Јас сум болен'], correctAnswer: 'Јас сум добро' },
+          { id: 'q25_5', type: 'multiple-choice', question: 'Translate "What"', options: ['Што', 'Кој', 'Каде', 'Кога'], correctAnswer: 'Што' },
+          { id: 'q25_6', type: 'translate', question: 'Surname', options: ['Презиме', 'Име', 'Адреса', 'Град'], correctAnswer: 'Презиме' },
+          { id: 'q25_7', type: 'fill-gap', question: 'Тие се ___ (good).', options: ['добри', 'добро', 'добар', 'добра'], correctAnswer: 'добри' },
+          { id: 'q25_8', type: 'translate', question: 'Bad', options: ['Лошо', 'Добро', 'Убаво', 'Грдо'], correctAnswer: 'Лошо' },
+          { id: 'q25_9', type: 'fill-gap', question: '___ (Who) е тој?', options: ['Кој', 'Што', 'Каде', 'Зошто'], correctAnswer: 'Кој' },
+          { id: 'q25_10', type: 'translate', question: 'What is this?', options: ['Што е ова?', 'Кој е ова?', 'Каде е ова?', 'Како е ова?'], correctAnswer: 'Што е ова?' },
+          { id: 'q25_11', type: 'multiple-choice', question: 'How do you say "Good"?', options: ['Добро', 'Лошо', 'Убаво', 'Грдо'], correctAnswer: 'Добро' },
+          { id: 'q25_12', type: 'fill-gap', question: 'Здраво, ___ (I am) Ана.', options: ['јас сум', 'ти си', 'тој е', 'таа е'], correctAnswer: 'јас сум' },
+          { id: 'q25_13', type: 'translate', question: 'Name', options: ['Име', 'Презиме', 'Адреса', 'Град'], correctAnswer: 'Име' },
+          { id: 'q25_14', type: 'multiple-choice', question: 'How do you ask "How are you?"', options: ['Како си?', 'Кој си ти?', 'Што е ова?', 'Каде си?'], correctAnswer: 'Како си?' },
+          { id: 'q25_15', type: 'fill-gap', question: 'Што ___ (is) ова?', options: ['е', 'си', 'сум', 'сте'], correctAnswer: 'е' }
+
+        ]
+      }
+    ]
+  },
+  // --- MODULE 3: THE GENDERED WORLD ---
+  {
+    id: 'mod_3',
+    title: '📦 Module 3: The Gendered World',
+    description: 'Every noun has a gender. Learn to see the matrix.',
+    lessons: [
+      // LEVEL 1: Intro to Genders
+      {
+        id: 'm3_l1_genders',
+        title: 'Level 1: The Three Genders',
+        theory: [
+          "Welcome to the Matrix! In Macedonian, **every noun has a gender**. It's not random - the spelling tells you the gender.",
+          "There are 3 genders: **Masculine (Машки)**, **Feminine (Женски)**, and **Neuter (Среден)**.",
+          "---",
+          "**Masculine (M)** nouns usually end in a **Consonant** (Парк, Компјутер, Телефон).",
+          "**Feminine (F)** nouns usually end in **-А** (Маса, Пица, Жена).",
+          "**Neuter (N)** nouns usually end in **-О** or **-Е** (Село, Кафе, Дете).",
+          "---",
+          "**Exceptions:** Some masculine words end in -O or -E if they are male people (Тато, Дедо, Чичко). These act masculine despite the ending."
+        ],
+        vocabulary: [
+          { mk: 'Парк', tr: 'Park', en: 'Park', gender: 'm' },
+          { mk: 'Град', tr: 'Grad', en: 'City', gender: 'm' },
+          { mk: 'Маса', tr: 'Masa', en: 'Table', gender: 'f' },
+          { mk: 'Книга', tr: 'Kniga', en: 'Book', gender: 'f' },
+          { mk: 'Село', tr: 'Selo', en: 'Village', gender: 'n' },
+          { mk: 'Кафе', tr: 'Kafe', en: 'Coffee', gender: 'n' },
+          { mk: 'Дрво', tr: 'Drvo', en: 'Tree', gender: 'n' }
+        ],
+        grammarTables: [
+          {
+            title: 'Gender Rules',
+            headers: ['Gender', 'Ending', 'Examples'],
+            rows: [
+              ['Masculine', 'Consonant', 'Стол (Chair), Град (City)'],
+              ['Feminine', '-А', 'Вода (Water), Соба (Room)'],
+              ['Neuter', '-О / -Е', 'Пиво (Beer), Море (Sea)']
+            ]
+          }
+        ],
+        quiz: [
+          { id: 'q31_1', type: 'multiple-choice', question: 'What gender is "Маса" (Ends in A)?', options: ['Feminine', 'Masculine', 'Neuter'], correctAnswer: 'Feminine' },
+          { id: 'q31_2', type: 'multiple-choice', question: 'What gender is "Парк" (Ends in K)?', options: ['Masculine', 'Feminine', 'Neuter'], correctAnswer: 'Masculine' },
+          { id: 'q31_3', type: 'multiple-choice', question: 'What gender is "Село" (Ends in O)?', options: ['Neuter', 'Feminine', 'Masculine'], correctAnswer: 'Neuter' },
+          { id: 'q31_4', type: 'translate', question: 'Tree', options: ['Дрво', 'Цвет', 'Трева', 'Парк'], correctAnswer: 'Дрво' },
+          { id: 'q31_5', type: 'fill-gap', question: 'Ова е мое ___ (village).', options: ['село', 'град', 'куќа', 'стан'], correctAnswer: 'село' },
+          { id: 'q31_6', type: 'translate', question: 'Book', options: ['Книга', 'Маса', 'Тетратка', 'Пенкало'], correctAnswer: 'Книга' },
+          { id: 'q31_7', type: 'multiple-choice', question: 'Is "Тато" (Dad) Neuter or Masculine?', options: ['Masculine', 'Neuter', 'Feminine'], correctAnswer: 'Masculine' },
+          { id: 'q31_8', type: 'translate', question: 'Coffee', options: ['Кафе', 'Чај', 'Вода', 'Сок'], correctAnswer: 'Кафе' },
+          { id: 'q31_9', type: 'fill-gap', question: 'Ова е ___ (city).', options: ['град', 'село', 'парк', 'улица'], correctAnswer: 'град' },
+          { id: 'q31_10', type: 'multiple-choice', question: 'Most words ending in a consonant are...', options: ['Masculine', 'Feminine', 'Neuter'], correctAnswer: 'Masculine' }
+        ]
+      },
+      // LEVEL 2: The Definite Article
+      {
+        id: 'm3_l2_articles',
+        title: 'Level 2: The Suffix "The"',
+        theory: [
+          "In English, 'The' is a separate word at the start (The Park). In Macedonian, 'The' is a **Suffix** at the end (Парк-от).",
+          "The suffix changes based on the gender of the word.",
+          "---",
+          "🟦 **Masculine (+ОТ)**: Парк -> Паркот (The Park).",
+          "🟥 **Feminine (+ТА)**: Маса -> Масата (The Table).",
+          "🟩 **Neuter (+ТО)**: Село -> Селото (The Village).",
+          "Remember: **ОТ, ТА, ТО**. It sounds like a robot rhythm!"
+        ],
+        vocabulary: [
+          { mk: 'Леб', tr: 'Leb', en: 'Bread', gender: 'm' },
+          { mk: 'Вода', tr: 'Voda', en: 'Water', gender: 'f' },
+          { mk: 'Месо', tr: 'Meso', en: 'Meat', gender: 'n' },
+          { mk: 'Сирење', tr: 'Sirenje', en: 'Cheese', gender: 'n' },
+          { mk: 'Сок', tr: 'Sok', en: 'Juice', gender: 'm' },
+          { mk: 'Пица', tr: 'Pica', en: 'Pizza', gender: 'f' }
+        ],
+        grammarTables: [
+          {
+            title: 'Definite Forms',
+            headers: ['Gender', 'Word', '+ The', 'Result'],
+            rows: [
+              ['Masc', 'Леб', '+ от', 'Лебот'],
+              ['Fem', 'Вода', '+ та', 'Водата'],
+              ['Neut', 'Месо', '+ то', 'Месото']
+            ]
+          }
+        ],
+        quiz: [
+          { id: 'q32_1', type: 'translate', question: 'The Bread', options: ['Лебот', 'Лебта', 'Лебо', 'Леб'], correctAnswer: 'Лебот' },
+          { id: 'q32_2', type: 'translate', question: 'The Water', options: ['Водата', 'Водаот', 'Водато', 'Вода'], correctAnswer: 'Водата' },
+          { id: 'q32_3', type: 'fill-gap', question: 'Дај ми го ___ (the juice).', options: ['сокот', 'сокта', 'сокто', 'сок'], correctAnswer: 'сокот' },
+          { id: 'q32_4', type: 'translate', question: 'The Village', options: ['Селото', 'Селота', 'Селоот', 'Село'], correctAnswer: 'Селото' },
+          { id: 'q32_5', type: 'multiple-choice', question: 'Suffix for Feminine nouns?', options: ['-та', '-от', '-то'], correctAnswer: '-та' },
+          { id: 'q32_6', type: 'translate', question: 'The Pizza', options: ['Пицата', 'Пицаот', 'Пицато', 'Пица'], correctAnswer: 'Пицата' },
+          { id: 'q32_7', type: 'fill-gap', question: 'Сакам ___ (the cheese).', options: ['сирењето', 'сирењета', 'сирењеот'], correctAnswer: 'сирењето' },
+          { id: 'q32_8', type: 'translate', question: 'Meat', options: ['Месо', 'Леб', 'Риба', 'Пиле'], correctAnswer: 'Месо' },
+          { id: 'q32_9', type: 'multiple-choice', question: 'Is "Паркот" specific or general?', options: ['Specific (The Park)', 'General (A Park)'], correctAnswer: 'Specific (The Park)' },
+          { id: 'q32_10', type: 'fill-gap', question: 'Каде е ___ (the city)?', options: ['градот', 'градта', 'градто'], correctAnswer: 'градот' }
+        ]
+      },
+      // LEVEL 3: Adjectives Intro
+      {
+        id: 'm3_l3_adjectives',
+        title: 'Level 3: Describing Things',
+        theory: [
+          "Adjectives (Big, Small, Good) must MATCH the gender of the noun they describe.",
+          "If the noun is Masculine, the adjective ends in a consonant.",
+          "If the noun is Feminine, the adjective gets an **-А**.",
+          "If the noun is Neuter, the adjective gets an **-О**.",
+          "---",
+          "Example with **Добар** (Good):",
+          "**Добар** ден (Good day - Masc).",
+          "**Добра** ноќ (Good night - Fem).",
+          "**Добро** утро (Good morning - Neut)."
+        ],
+        vocabulary: [
+          { mk: 'Добар', tr: 'Dobar', en: 'Good' },
+          { mk: 'Лош', tr: 'Losh', en: 'Bad' },
+          { mk: 'Голем', tr: 'Golem', en: 'Big' },
+          { mk: 'Мал', tr: 'Mal', en: 'Small' },
+          { mk: 'Убав', tr: 'Ubav', en: 'Beautiful/Nice' },
+          { mk: 'Вкусен', tr: 'Vkusen', en: 'Tasty/Delicious' }
+        ],
+        grammarTables: [
+          {
+            title: 'Adjective Agreement',
+            headers: ['Gender', 'Adjective', 'Example'],
+            rows: [
+              ['Masc', 'Голем', 'Голем сендвич'],
+              ['Fem', 'Голема', 'Голема пица'],
+              ['Neut', 'Големо', 'Големо кафе']
+            ]
+          }
+        ],
+        quiz: [
+          { id: 'q33_1', type: 'fill-gap', question: 'Ова е ___ (big) пица.', options: ['голема', 'голем', 'големо'], correctAnswer: 'голема' },
+          { id: 'q33_2', type: 'translate', question: 'Good day', options: ['Добар ден', 'Добра ден', 'Добро ден'], correctAnswer: 'Добар ден' },
+          { id: 'q33_3', type: 'fill-gap', question: 'Кафето е ___ (tasty).', options: ['вкусно', 'вкусен', 'вкусна'], correctAnswer: 'вкусно' },
+          { id: 'q33_4', type: 'translate', question: 'Beautiful city', options: ['Убав град', 'Убава град', 'Убаво град'], correctAnswer: 'Убав град' },
+          { id: 'q33_5', type: 'multiple-choice', question: 'Adjective ending for Feminine?', options: ['-а', '-о', 'Consonant'], correctAnswer: '-а' },
+          { id: 'q33_6', type: 'translate', question: 'Small village', options: ['Мало село', 'Мал село', 'Мала село'], correctAnswer: 'Мало село' },
+          { id: 'q33_7', type: 'fill-gap', question: 'Тој е ___ (bad) човек.', options: ['лош', 'лоша', 'лошо'], correctAnswer: 'лош' },
+          { id: 'q33_8', type: 'translate', question: 'Tasty bread', options: ['Вкусен леб', 'Вкусна леб', 'Вкусно леб'], correctAnswer: 'Вкусен леб' },
+          { id: 'q33_9', type: 'multiple-choice', question: 'Translate "Beautiful"', options: ['Убав', 'Грд', 'Голем', 'Мал'], correctAnswer: 'Убав' },
+          { id: 'q33_10', type: 'fill-gap', question: '___ (Good) утро.', options: ['Добро', 'Добар', 'Добра'], correctAnswer: 'Добро' }
+        ]
+      },
+      // LEVEL 4: MINI STORY
+      {
+        id: 'm3_l4_story_cafe',
+        title: 'Level 4: Story - At the Cafe',
+        theory: [
+          "☕ **Story Time: Ordering Coffee**",
+          "We will use genders, articles, and 'Сакам' (I want).",
+          "---",
+          "**Келнер:** Здраво. Повелете? (Hello. Here you go/How can I help?)",
+          "**Марко:** Здраво. Јас сакам едно **големо кафе**. (I want one big coffee.)",
+          "**Келнер:** Добро. А за вас? (Okay. And for you?)",
+          "**Маја:** Јас сакам **минерална вода** и една **вкусна торта**. (I want mineral water and one tasty cake.)",
+          "**Келнер:** Во ред. (Alright.)",
+          "---",
+          "Note: '**Едно**' (One) also changes gender! Едно кафе (N), Една вода (F)."
+        ],
+        vocabulary: [
+          { mk: 'Повелете', tr: 'Povelete', en: 'Here you go / May I help' },
+          { mk: 'Сакам', tr: 'Sakam', en: 'I want' },
+          { mk: 'Минерална', tr: 'Mineralna', en: 'Mineral (Fem)' },
+          { mk: 'Во ред', tr: 'Vo red', en: 'Alright / In order' },
+          { mk: 'За вас', tr: 'Za vas', en: 'For you (Formal)' }
+        ],
+        grammarTables: [],
+        quiz: [
+          { id: 'q34_1', type: 'translate', question: 'I want coffee.', options: ['Сакам кафе', 'Сакаш кафе', 'Сака кафе'], correctAnswer: 'Сакам кафе' },
+          { id: 'q34_2', type: 'fill-gap', question: 'Сакам ___ (mineral) вода.', options: ['минерална', 'минерален', 'минерално'], correctAnswer: 'минерална' },
+          { id: 'q34_3', type: 'multiple-choice', question: 'What does Marko order?', options: ['Big coffee', 'Small coffee', 'Tea', 'Water'], correctAnswer: 'Big coffee' },
+          { id: 'q34_4', type: 'translate', question: 'Tasty cake', options: ['Вкусна торта', 'Вкусен торта', 'Вкусно торта'], correctAnswer: 'Вкусна торта' },
+          { id: 'q34_5', type: 'fill-gap', question: '___ (One) кафе, ве молам.', options: ['Едно', 'Еден', 'Една'], correctAnswer: 'Едно' },
+          { id: 'q34_6', type: 'translate', question: 'Alright (In order)', options: ['Во ред', 'Во право', 'Во лево'], correctAnswer: 'Во ред' },
+          { id: 'q34_7', type: 'multiple-choice', question: 'What does "Povelete" mean?', options: ['How can I help?', 'Goodbye', 'Thank you', 'No'], correctAnswer: 'How can I help?' },
+          { id: 'q34_8', type: 'fill-gap', question: 'А за ___ (you)?', options: ['вас', 'тебе', 'нив'], correctAnswer: 'вас' },
+          { id: 'q34_9', type: 'translate', question: 'Big coffee', options: ['Големо кафе', 'Голема кафе', 'Голем кафе'], correctAnswer: 'Големо кафе' },
+          { id: 'q34_10', type: 'multiple-choice', question: 'Does Maya want pizza?', options: ['No', 'Yes'], correctAnswer: 'No' }
+        ]
+      },
+      // LEVEL 5: Plural Nouns Intro
+      {
+        id: 'm3_l5_plurals',
+        title: 'Level 5: Making it Many',
+        theory: [
+          "Finally, let's make things plural!",
+          "🟦 **Masculine**: Add **-И** (Парк -> Паркови). *Note: Short words add -ovi.*",
+          "🟥 **Feminine**: Change -A to **-И** (Маса -> Маси).",
+          "🟩 **Neuter**: Change -O/E to **-А** (Село -> Села).",
+          "---",
+          "Examples:",
+          "Еден студент -> Два **студенти**.",
+          "Една жена -> Две **жени**.",
+          "Едно село -> Три **села**."
+        ],
+        vocabulary: [
+          { mk: 'Студенти', tr: 'Studenti', en: 'Students' },
+          { mk: 'Жени', tr: 'Zheni', en: 'Women' },
+          { mk: 'Села', tr: 'Sela', en: 'Villages' },
+          { mk: 'Маси', tr: 'Masi', en: 'Tables' },
+          { mk: 'Градови', tr: 'Gradovi', en: 'Cities (Long plural)' },
+          { mk: 'Деца', tr: 'Deca', en: 'Children (Irregular)' }
+        ],
+        grammarTables: [
+          {
+            title: 'Plural Patterns',
+            headers: ['Singular', 'Plural', 'Rule'],
+            rows: [
+              ['Жена (F)', 'Жени', '-A -> -I'],
+              ['Село (N)', 'Села', '-O -> -A'],
+              ['Парк (M)', 'Паркови', '+ OVI'],
+              ['Студент (M)', 'Студенти', '+ I']
+            ]
+          }
+        ],
+        quiz: [
+          { id: 'q35_1', type: 'translate', question: 'Tables', options: ['Маси', 'Масови', 'Маса'], correctAnswer: 'Маси' },
+          { id: 'q35_2', type: 'translate', question: 'Cities', options: ['Градови', 'Гради', 'Града'], correctAnswer: 'Градови' },
+          { id: 'q35_3', type: 'fill-gap', question: 'Имам две ___ (sisters).', options: ['сестри', 'сестра', 'сестрови'], correctAnswer: 'сестри' },
+          { id: 'q35_4', type: 'multiple-choice', question: 'Plural of "Selo" (Village)?', options: ['Села', 'Сели', 'Селови'], correctAnswer: 'Села' },
+          { id: 'q35_5', type: 'translate', question: 'Students', options: ['Студенти', 'Студента', 'Студентови'], correctAnswer: 'Студенти' },
+          { id: 'q35_6', type: 'fill-gap', question: 'Ова се моите ___ (children).', options: ['деца', 'дете', 'деци'], correctAnswer: 'деца' },
+          { id: 'q35_7', type: 'translate', question: 'Parks', options: ['Паркови', 'Парки', 'Парка'], correctAnswer: 'Паркови' },
+          { id: 'q35_8', type: 'multiple-choice', question: 'Is "Жени" singular or plural?', options: ['Plural', 'Singular'], correctAnswer: 'Plural' },
+          { id: 'q35_9', type: 'fill-gap', question: 'Три ___ (beers - pivo).', options: ['пива', 'пиви', 'пиво'], correctAnswer: 'пива' },
+          { id: 'q35_10', type: 'translate', question: 'Hotels', options: ['Хотели', 'Хотела', 'Хотелови'], correctAnswer: 'Хотели' }
+        ]
+      }
+    ]
+  },
+
+  // --- MODULE 4: ACTION & VERBS ---
+  {
+    id: 'mod_4',
+    title: '🏃 Module 4: Action Time',
+    description: 'Learn to do things. Eat, drink, work, and play in the present tense.',
+    lessons: [
+      // LEVEL 1: The "A" Group Verbs
+      {
+        id: 'm4_l1_verbs_a',
+        title: 'Level 1: The "A" Verbs',
+        theory: [
+          "Verbs are the engine of sentences. In Macedonian, verbs change ending based on WHO is doing the action.",
+          "We categorize verbs by their ending letter in the dictionary form (3rd person singular).",
+          "**Group A**: These verbs end in **-А**. Example: **Гледа** (He watches).",
+          "---",
+          "**Conjugation Rules:**",
+          "**Јас** (I) -> add **-М**. (Гледа + м = Гледам)",
+          "**Ти** (You) -> add **-Ш**. (Гледа + ш = Гледаш)",
+          "**Тој** (He) -> **No Change**. (Гледа)",
+          "**Ние** (We) -> add **-МЕ**. (Гледа + ме = Гледаме)",
+          "**Вие** (You pl) -> add **-ТЕ**. (Гледа + те = Гледате)",
+          "**Тие** (They) -> add **-АТ**. (Гледа + ат = Гледаат)"
+        ],
+        vocabulary: [
+          { mk: 'Гледа', tr: 'Gleda', en: 'Watch/Look' },
+          { mk: 'Слуша', tr: 'Slusha', en: 'Listen' },
+          { mk: 'Чита', tr: 'Chita', en: 'Read' },
+          { mk: 'Плива', tr: 'Pliva', en: 'Swim' },
+          { mk: 'Игра', tr: 'Igra', en: 'Play' },
+          { mk: 'Трча', tr: 'Trcha', en: 'Run' },
+          { mk: 'Сака', tr: 'Saka', en: 'Want/Love' }
+        ],
+        grammarTables: [
+          {
+            title: 'Conjugation: Гледа (To Watch)',
+            headers: ['Person', 'Suffix', 'Full Verb'],
+            rows: [
+              ['Јас', '-м', 'Гледам'],
+              ['Ти', '-ш', 'Гледаш'],
+              ['Тој/Таа', '-', 'Гледа'],
+              ['Ние', '-ме', 'Гледаме'],
+              ['Вие', '-те', 'Гледате'],
+              ['Тие', '-ат', 'Гледаат']
+            ]
+          }
+        ],
+        quiz: [
+          { id: 'q41_1', type: 'fill-gap', question: 'Јас ___ (read) книга.', options: ['читам', 'чита', 'читаш', 'читат'], correctAnswer: 'читам' },
+          { id: 'q41_2', type: 'translate', question: 'We listen.', options: ['Ние слушаме', 'Ние слушате', 'Ние слушат', 'Ние слушам'], correctAnswer: 'Ние слушаме' },
+          { id: 'q41_3', type: 'fill-gap', question: 'Ти ___ (run) брзо.', options: ['трчаш', 'трчам', 'трча', 'трчаме'], correctAnswer: 'трчаш' },
+          { id: 'q41_4', type: 'multiple-choice', question: 'Conjugation for "They" (Тие)?', options: ['-ат', '-ме', '-те', '-ш'], correctAnswer: '-ат' },
+          { id: 'q41_5', type: 'translate', question: 'She watches TV.', options: ['Таа гледа ТВ', 'Таа гледаш ТВ', 'Таа гледам ТВ', 'Таа гледаат ТВ'], correctAnswer: 'Таа гледа ТВ' },
+          { id: 'q41_6', type: 'translate', question: 'I want coffee.', options: ['Сакам кафе', 'Сака кафе', 'Сакаш кафе', 'Сакаме кафе'], correctAnswer: 'Сакам кафе' },
+          { id: 'q41_7', type: 'fill-gap', question: 'Вие ___ (play) фудбал.', options: ['играте', 'играме', 'играт', 'играч'], correctAnswer: 'играте' },
+          { id: 'q41_8', type: 'multiple-choice', question: 'Does "Гледа" mean to Listen?', options: ['No', 'Yes'], correctAnswer: 'No' },
+          { id: 'q41_9', type: 'translate', question: 'They swim.', options: ['Тие пливаат', 'Тие пливаме', 'Тие плива', 'Тие пливам'], correctAnswer: 'Тие пливаат' },
+          { id: 'q41_10', type: 'fill-gap', question: 'Тој ___ (reads) весник.', options: ['чита', 'читам', 'читаат', 'читаш'], correctAnswer: 'чита' }
+        ]
+      },
+
+      // LEVEL 2: The "I" and "E" Verbs
+      {
+        id: 'm4_l2_verbs_ie',
+        title: 'Level 2: Eating & Drinking',
+        theory: [
+          "Not all verbs end in 'A'. Some end in **-И** or **-Е**.",
+          "These are slightly trickier because the vowel sometimes disappears or changes.",
+          "---",
+          "**Group I (Мисли - To Think):**",
+          "Јас мисл**ам** (I think) - *Note: The 'i' becomes 'a' for 'I'.*",
+          "Ти мисл**иш** (You think).",
+          "Тој мисл**и** (He thinks).",
+          "Ние мисл**име**. Вие мисл**ите**. Тие мисл**ат**.",
+          "---",
+          "**Group E (Јаде - To Eat):**",
+          "Јас јад**ам**. Ти јад**еш**. Тој јад**е**.",
+          "Ние јад**еме**. Вие јад**ете**. Тие јад**ат**.",
+          "**Key takeaway:** 'Јас' always ends in **-АМ**. 'Ти' always ends in **-Ш**."
+        ],
+        vocabulary: [
+          { mk: 'Јаде', tr: 'Jade', en: 'Eat' },
+          { mk: 'Пие', tr: 'Pie', en: 'Drink' },
+          { mk: 'Мисли', tr: 'Misli', en: 'Think' },
+          { mk: 'Прави', tr: 'Pravi', en: 'Do / Make' },
+          { mk: 'Оди', tr: 'Odi', en: 'Go / Walk' },
+          { mk: 'Зборува', tr: 'Zboruva', en: 'Speak (A-group)' },
+          { mk: 'Учи', tr: 'Uchi', en: 'Learn / Study' }
+        ],
+        grammarTables: [
+          {
+            title: 'Comparison: Јаде vs Мисли',
+            headers: ['Person', 'Јаде (E-group)', 'Мисли (I-group)'],
+            rows: [
+              ['Јас', 'Јадам', 'Мислам'],
+              ['Ти', 'Јадеш', 'Мислиш'],
+              ['Тој', 'Јаде', 'Мисли'],
+              ['Ние', 'Јадеме', 'Мислиме'],
+              ['Тие', 'Јадат', 'Мислат']
+            ]
+          }
+        ],
+        quiz: [
+          { id: 'q42_1', type: 'translate', question: 'I eat pizza.', options: ['Јас јадам пица', 'Јас јаде пица', 'Јас јадиш пица'], correctAnswer: 'Јас јадам пица' },
+          { id: 'q42_2', type: 'fill-gap', question: 'Ти ___ (drink) вода.', options: ['пиеш', 'пие', 'пијам', 'пиат'], correctAnswer: 'пиеш' },
+          { id: 'q42_3', type: 'translate', question: 'We are going.', options: ['Ние одиме', 'Ние одам', 'Ние одат', 'Ние одиш'], correctAnswer: 'Ние одиме' },
+          { id: 'q42_4', type: 'fill-gap', question: 'Што ___ (doing) ти?', options: ['правиш', 'прави', 'правам', 'прават'], correctAnswer: 'правиш' },
+          { id: 'q42_5', type: 'multiple-choice', question: 'Translate "They think".', options: ['Тие мислат', 'Тие мислите', 'Тие мисли', 'Тие мислиш'], correctAnswer: 'Тие мислат' },
+          { id: 'q42_6', type: 'translate', question: 'He learns.', options: ['Тој учи', 'Тој учам', 'Тој учиш', 'Тој учат'], correctAnswer: 'Тој учи' },
+          { id: 'q42_7', type: 'fill-gap', question: 'Јас не ___ (speak) англиски.', options: ['зборувам', 'зборува', 'зборуваш', 'зборуваат'], correctAnswer: 'зборувам' },
+          { id: 'q42_8', type: 'multiple-choice', question: 'Group for "Пие" (Drink)?', options: ['E-Group', 'I-Group', 'A-Group'], correctAnswer: 'E-Group' },
+          { id: 'q42_9', type: 'translate', question: 'You (pl) eat.', options: ['Вие јадете', 'Вие јадеме', 'Вие јадат', 'Вие јадеш'], correctAnswer: 'Вие јадете' },
+          { id: 'q42_10', type: 'fill-gap', question: 'Таа ___ (makes) кафе.', options: ['прави', 'правам', 'правиш', 'прават'], correctAnswer: 'прави' }
+        ]
+      },
+
+      // LEVEL 3: Negation & Questions
+      {
+        id: 'm4_l3_negation',
+        title: 'Level 3: Saying NO',
+        theory: [
+          "You know how to say 'I eat'. But what if you are on a diet?",
+          "To negate a verb, simply put **НЕ** before it.",
+          "**Јас не јадам** (I don't eat). **Тој не знае** (He doesn't know).",
+          "---",
+          "To ask a question, you can just raise your voice 🗣️.",
+          "Or, you can add **ДАЛИ** at the start, or **ЛИ** after the verb.",
+          "Statement: **Ти пиеш.** (You drink.)",
+          "Question 1: **Дали ти пиеш?**",
+          "Question 2: **Пиеш ли ти?**"
+        ],
+        vocabulary: [
+          { mk: 'Не', tr: 'Ne', en: 'No/Not' },
+          { mk: 'Дали', tr: 'Dali', en: 'Question Particle' },
+          { mk: 'Знае', tr: 'Znae', en: 'Know' },
+          { mk: 'Разбира', tr: 'Razbira', en: 'Understand' },
+          { mk: 'Живее', tr: 'Zhivee', en: 'Live' },
+          { mk: 'Работи', tr: 'Raboti', en: 'Work' },
+          { mk: 'Ли', tr: 'Li', en: 'Question Suffix' }
+        ],
+        grammarTables: [
+          {
+            title: 'Sentence Types',
+            headers: ['Type', 'Macedonian', 'English'],
+            rows: [
+              ['Positive', 'Ти знаеш.', 'You know.'],
+              ['Negative', 'Ти не знаеш.', 'You don\'t know.'],
+              ['Question', 'Дали ти знаеш?', 'Do you know?']
+            ]
+          }
+        ],
+        quiz: [
+          { id: 'q43_1', type: 'translate', question: 'I do not understand.', options: ['Не разбирам', 'Не зборувам', 'Не знам', 'Не сакам'], correctAnswer: 'Не разбирам' },
+          { id: 'q43_2', type: 'fill-gap', question: '___ (Do) ти работиш?', options: ['Дали', 'Што', 'Кој', 'Како'], correctAnswer: 'Дали' },
+          { id: 'q43_3', type: 'translate', question: 'He does not live here.', options: ['Тој не живее овде', 'Тој не работи овде', 'Тој живее овде', 'Тој не спие овде'], correctAnswer: 'Тој не живее овде' },
+          { id: 'q43_4', type: 'multiple-choice', question: 'Where does "НЕ" go?', options: ['Before the verb', 'After the verb', 'At the end'], correctAnswer: 'Before the verb' },
+          { id: 'q43_5', type: 'fill-gap', question: 'Знаеш ___ (question particle) каде е?', options: ['ли', 'да', 'не', 'во'], correctAnswer: 'ли' },
+          { id: 'q43_6', type: 'translate', question: 'We do not work.', options: ['Ние не работиме', 'Ние работиме', 'Ние не работиш', 'Ние не работи'], correctAnswer: 'Ние не работиме' },
+          { id: 'q43_7', type: 'fill-gap', question: 'Јас не ___ (know).', options: ['знам', 'знаам', 'знаеш', 'знае'], correctAnswer: 'знам' },
+          { id: 'q43_8', type: 'multiple-choice', question: 'Translate "Do you understand?"', options: ['Разбираш ли?', 'Разбирам ли?', 'Разбира ли?', 'Не разбираш?'], correctAnswer: 'Разбираш ли?' },
+          { id: 'q43_9', type: 'translate', question: 'They do not play.', options: ['Тие не играат', 'Тие не играм', 'Тие играат', 'Тие не играш'], correctAnswer: 'Тие не играат' },
+          { id: 'q43_10', type: 'fill-gap', question: 'Таа ___ (not) сака кафе.', options: ['не', 'но', 'ни', 'на'], correctAnswer: 'не' }
+        ]
+      },
+
+      // LEVEL 4: Daily Routine (Story)
+      {
+        id: 'm4_l4_story_routine',
+        title: 'Level 4: Story - Daily Routine',
+        theory: [
+          "📅 **Story Time: A Normal Day**",
+          "Let's look at verbs in action. Try to spot the verbs (in bold).",
+          "---",
+          "Јас сум Ана. Секој ден јас **станувам** во 7 часот. (I get up at 7.)",
+          "Прво, јас **пијам** кафе. (First, I drink coffee.)",
+          "Потоа, јас **одам** на работа со автобус. (Then, I go to work by bus.)",
+          "Јас **работам** во канцеларија. (I work in an office.)",
+          "Навечер, јас **гледам** ТВ и **јадам** вечера. (In the evening, I watch TV and eat dinner.)",
+          "Јас не **спијам** рано. (I don't sleep early.)"
+        ],
+        vocabulary: [
+          { mk: 'Станува', tr: 'Stanuva', en: 'Get up/Stand up' },
+          { mk: 'Секој ден', tr: 'Sekoj den', en: 'Every day' },
+          { mk: 'Прво', tr: 'Prvo', en: 'First' },
+          { mk: 'Потоа', tr: 'Potoa', en: 'Then/After' },
+          { mk: 'Навечер', tr: 'Navecher', en: 'In the evening' },
+          { mk: 'Спие', tr: 'Spie', en: 'Sleep' },
+          { mk: 'Вечера', tr: 'Vechera', en: 'Dinner' }
+        ],
+        grammarTables: [],
+        quiz: [
+          { id: 'q44_1', type: 'multiple-choice', question: 'When does Ana get up?', options: ['7 o\'clock', '8 o\'clock', '9 o\'clock', '6 o\'clock'], correctAnswer: '7 o\'clock' },
+          { id: 'q44_2', type: 'fill-gap', question: 'Прво, јас ___ (drink) кафе.', options: ['пијам', 'јадам', 'правам', 'сакам'], correctAnswer: 'пијам' },
+          { id: 'q44_3', type: 'translate', question: 'Every day', options: ['Секој ден', 'Денес', 'Утре', 'Вчера'], correctAnswer: 'Секој ден' },
+          { id: 'q44_4', type: 'fill-gap', question: 'Јас ___ (go) на работа.', options: ['одам', 'работам', 'доаѓам', 'правам'], correctAnswer: 'одам' },
+          { id: 'q44_5', type: 'translate', question: 'In the evening', options: ['Навечер', 'Наутро', 'Попладне', 'Ноќе'], correctAnswer: 'Навечер' },
+          { id: 'q44_6', type: 'multiple-choice', question: 'Does Ana sleep early?', options: ['No', 'Yes'], correctAnswer: 'No' },
+          { id: 'q44_7', type: 'translate', question: 'Dinner', options: ['Вечера', 'Појадок', 'Ручек', 'Храна'], correctAnswer: 'Вечера' },
+          { id: 'q44_8', type: 'fill-gap', question: 'Јас ___ (work) во канцеларија.', options: ['работам', 'одам', 'седам', 'гледам'], correctAnswer: 'работам' },
+          { id: 'q44_9', type: 'translate', question: 'Then / After', options: ['Потоа', 'Прво', 'Сега', 'Кога'], correctAnswer: 'Потоа' },
+          { id: 'q44_10', type: 'multiple-choice', question: 'What does she do in the evening?', options: ['Watches TV', 'Reads book', 'Swims', 'Runs'], correctAnswer: 'Watches TV' }
+        ]
+      },
+
+      // LEVEL 5: Review & "To Have"
+      {
+        id: 'm4_l5_have_review',
+        title: 'Level 5: To Have & Review',
+        theory: [
+          "One last essential verb: **Има** (To Have).",
+          "**Јас имам**. **Ти имаш**. **Тој има**.",
+          "**Ние имаме**. **Вие имате**. **Тие имаат**.",
+          "---",
+          "Use it for possession ('I have a car') AND for 'There is' ('Има проблем' - There is a problem).",
+          "Let's review everything: Pronouns, Genders, and Verbs."
+        ],
+        vocabulary: [
+          { mk: 'Има', tr: 'Ima', en: 'Have / There is' },
+          { mk: 'Нема', tr: 'Nema', en: 'Have not / There is not' },
+          { mk: 'Кола', tr: 'Kola', en: 'Car' },
+          { mk: 'Време', tr: 'Vreme', en: 'Time / Weather' },
+          { mk: 'Пари', tr: 'Pari', en: 'Money' },
+          { mk: 'Проблем', tr: 'Problem', en: 'Problem' }
+        ],
+        grammarTables: [
+          {
+            title: 'Verb: Има (Have)',
+            headers: ['Person', 'Verb', 'Negative'],
+            rows: [
+              ['Јас', 'Имам', 'Немам'],
+              ['Ти', 'Имаш', 'Немаш'],
+              ['Тој', 'Има', 'Нема']
+            ]
+          }
+        ],
+        quiz: [
+          { id: 'q45_1', type: 'translate', question: 'I have time.', options: ['Имам време', 'Имаш време', 'Имаме време', 'Имаат време'], correctAnswer: 'Имам време' },
+          { id: 'q45_2', type: 'fill-gap', question: 'Тој ___ (has) кола.', options: ['има', 'имам', 'имаш', 'имаат'], correctAnswer: 'има' },
+          { id: 'q45_3', type: 'translate', question: 'We do not have money.', options: ['Ние немаме пари', 'Ние имаме пари', 'Ние немат пари', 'Ние немам пари'], correctAnswer: 'Ние немаме пари' },
+          { id: 'q45_4', type: 'fill-gap', question: '___ (There is) проблем.', options: ['Има', 'Имам', 'Имаш', 'Имате'], correctAnswer: 'Има' },
+          { id: 'q45_5', type: 'multiple-choice', question: 'Negative of "Има"?', options: ['Нема', 'Не има', 'Но има'], correctAnswer: 'Нема' },
+          { id: 'q45_6', type: 'translate', question: 'You (pl) have.', options: ['Вие имате', 'Вие имаме', 'Вие имаат', 'Вие имаш'], correctAnswer: 'Вие имате' },
+          { id: 'q45_7', type: 'fill-gap', question: 'Јас ___ (don\'t have) време.', options: ['немам', 'не имам', 'нема', 'немаш'], correctAnswer: 'немам' },
+          { id: 'q45_8', type: 'translate', question: 'Car', options: ['Кола', 'Автобус', 'Велосипед', 'Камион'], correctAnswer: 'Кола' },
+          { id: 'q45_9', type: 'fill-gap', question: 'Тие ___ (have) голема куќа.', options: ['имаат', 'има', 'имаме', 'имате'], correctAnswer: 'имаат' },
+          { id: 'q45_10', type: 'multiple-choice', question: 'Translate "She knows".', options: ['Таа знае', 'Таа знаеш', 'Таа знаам', 'Таа знаат'], correctAnswer: 'Таа знае' }
+        ]
+      }
+    ]
+  },
+  // --- MODULE 5: QUESTIONS & FAMILY ---
+  {
+    id: 'mod_5',
+    title: '❓ Module 5: Who, What, Whose?',
+    description: 'Ask questions and talk about your family using possessives.',
+    lessons: [
+      // LEVEL 1: The 5 Ws (Question Words)
+      {
+        id: 'm5_l1_questions',
+        title: 'Level 1: The Question Words',
+        theory: [
+          "To have a conversation, you must ask questions. In Macedonian, question words usually go at the start.",
+          "**Што (Shto)** = What.",
+          "**Кој (Koj)** = Who.",
+          "**Каде (Kade)** = Where.",
+          "**Кога (Koga)** = When.",
+          "**Зошто (Zoshto)** = Why.",
+          "**Како (Kako)** = How.",
+          "---",
+          "Examples:",
+          "**Што е ова?** (What is this?)",
+          "**Каде си ти?** (Where are you?)",
+          "**Кој е тој?** (Who is he?)"
+        ],
+        vocabulary: [
+          { mk: 'Што', tr: 'Shto', en: 'What' },
+          { mk: 'Кој', tr: 'Koj', en: 'Who' },
+          { mk: 'Каде', tr: 'Kade', en: 'Where' },
+          { mk: 'Кога', tr: 'Koga', en: 'When' },
+          { mk: 'Зошто', tr: 'Zoshto', en: 'Why' },
+          { mk: 'Како', tr: 'Kako', en: 'How' },
+          { mk: 'Бидејќи', tr: 'Bidejkji', en: 'Because' }
+        ],
+        grammarTables: [
+          {
+            title: 'Common Questions',
+            headers: ['Macedonian', 'English'],
+            rows: [
+              ['Каде живееш?', 'Where do you live?'],
+              ['Што правиш?', 'What are you doing?'],
+              ['Кој е тој?', 'Who is he?'],
+              ['Зошто си тажен?', 'Why are you sad?']
+            ]
+          }
+        ],
+        quiz: [
+          { id: 'q51_1', type: 'translate', question: 'Where', options: ['Каде', 'Кога', 'Кој', 'Што'], correctAnswer: 'Каде' },
+          { id: 'q51_2', type: 'fill-gap', question: '___ (Who) е таа?', options: ['Кој', 'Што', 'Каде', 'Како'], correctAnswer: 'Кој' },
+          { id: 'q51_3', type: 'translate', question: 'What are you doing?', options: ['Што правиш?', 'Каде правиш?', 'Кој правиш?', 'Зошто правиш?'], correctAnswer: 'Што правиш?' },
+          { id: 'q51_4', type: 'fill-gap', question: '___ (Why) не јадеш?', options: ['Зошто', 'Затоа', 'Кога', 'Каде'], correctAnswer: 'Зошто' },
+          { id: 'q51_5', type: 'multiple-choice', question: 'Translate "Because"', options: ['Бидејќи', 'Зошто', 'Ако', 'Но'], correctAnswer: 'Бидејќи' },
+          { id: 'q51_6', type: 'translate', question: 'When', options: ['Кога', 'Каде', 'Колку', 'Како'], correctAnswer: 'Кога' },
+          { id: 'q51_7', type: 'fill-gap', question: '___ (How) си?', options: ['Како', 'Што', 'Кој', 'Каде'], correctAnswer: 'Како' },
+          { id: 'q51_8', type: 'multiple-choice', question: 'Translate "What is this?"', options: ['Што е ова?', 'Кој е ова?', 'Каде е ова?', 'Кога е ова?'], correctAnswer: 'Што е ова?' },
+          { id: 'q51_9', type: 'translate', question: 'Where do you live?', options: ['Каде живееш?', 'Што живееш?', 'Кога живееш?', 'Кој живееш?'], correctAnswer: 'Каде живееш?' },
+          { id: 'q51_10', type: 'fill-gap', question: '___ (Who) е твојот татко?', options: ['Кој', 'Што', 'Каде', 'Зошто'], correctAnswer: 'Кој' }
+        ]
+      },
+
+      // LEVEL 2: Family Vocabulary
+      {
+        id: 'm5_l2_family',
+        title: 'Level 2: Family Members',
+        theory: [
+          "Let's meet the family (**Семејство**).",
+          "We have different genders for family members.",
+          "**Masculine**: Татко (Dad), Брат (Brother), Дедо (Grandpa), Син (Son), Маж (Husband).",
+          "**Feminine**: Мајка (Mom), Сестра (Sister), Баба (Grandma), Ќерка (Daughter), Жена (Wife).",
+          "---",
+          "Note: 'Родители' means Parents."
+        ],
+        vocabulary: [
+          { mk: 'Мајка', tr: 'Majka', en: 'Mother' },
+          { mk: 'Татко', tr: 'Tatko', en: 'Father' },
+          { mk: 'Брат', tr: 'Brat', en: 'Brother' },
+          { mk: 'Сестра', tr: 'Sestra', en: 'Sister' },
+          { mk: 'Син', tr: 'Sin', en: 'Son' },
+          { mk: 'Ќерка', tr: 'Kjerka', en: 'Daughter' },
+          { mk: 'Родители', tr: 'Roditeli', en: 'Parents' },
+          { mk: 'Сопруг', tr: 'Soprug', en: 'Husband (Formal)' }
+        ],
+        grammarTables: [
+          {
+            title: 'Family Pairs',
+            headers: ['Male', 'Female'],
+            rows: [
+              ['Татко (Father)', 'Мајка (Mother)'],
+              ['Брат (Brother)', 'Сестра (Sister)'],
+              ['Син (Son)', 'Ќерка (Daughter)'],
+              ['Дедо (Grandpa)', 'Баба (Grandma)']
+            ]
+          }
+        ],
+        quiz: [
+          { id: 'q52_1', type: 'translate', question: 'Mother', options: ['Мајка', 'Татко', 'Сестра', 'Баба'], correctAnswer: 'Мајка' },
+          { id: 'q52_2', type: 'translate', question: 'Son', options: ['Син', 'Ќерка', 'Брат', 'Дете'], correctAnswer: 'Син' },
+          { id: 'q52_3', type: 'fill-gap', question: 'Ова е мојата ___ (sister).', options: ['сестра', 'брат', 'мајка', 'тетка'], correctAnswer: 'сестра' },
+          { id: 'q52_4', type: 'multiple-choice', question: 'Is "Брат" masculine or feminine?', options: ['Masculine', 'Feminine'], correctAnswer: 'Masculine' },
+          { id: 'q52_5', type: 'translate', question: 'Parents', options: ['Родители', 'Деца', 'Луѓе', 'Роднини'], correctAnswer: 'Родители' },
+          { id: 'q52_6', type: 'translate', question: 'Daughter', options: ['Ќерка', 'Син', 'Сестра', 'Мајка'], correctAnswer: 'Ќерка' },
+          { id: 'q52_7', type: 'fill-gap', question: 'Тој е мој ___ (father).', options: ['татко', 'мајка', 'дедо', 'брат'], correctAnswer: 'татко' },
+          { id: 'q52_8', type: 'multiple-choice', question: 'Who is "Баба"?', options: ['Grandma', 'Grandpa', 'Baby', 'Dad'], correctAnswer: 'Grandma' },
+          { id: 'q52_9', type: 'translate', question: 'Husband (Formal)', options: ['Сопруг', 'Маж', 'Човек', 'Татко'], correctAnswer: 'Сопруг' },
+          { id: 'q52_10', type: 'fill-gap', question: 'Имам еден ___ (brother).', options: ['брат', 'сестра', 'син', 'татко'], correctAnswer: 'брат' }
+        ]
+      },
+
+      // LEVEL 3: Possessives (My, Your)
+      {
+        id: 'm5_l3_possessives',
+        title: 'Level 3: My and Your',
+        theory: [
+          "To say 'My' or 'Your', the word must change gender to match the **OBJECT**, not the person speaking!",
+          "**My (Јас):** Мој (Masc), Моја (Fem), Мое (Neut), Мои (Plural).",
+          "**Your (Ти):** Твој (Masc), Твоја (Fem), Твое (Neut), Твои (Plural).",
+          "---",
+          "Examples:",
+          "**Мој** татко (My dad - Masc).",
+          "**Моја** мајка (My mom - Fem).",
+          "**Твое** дете (Your child - Neut)."
+        ],
+        vocabulary: [
+          { mk: 'Мој', tr: 'Moj', en: 'My (Masc)' },
+          { mk: 'Моја', tr: 'Moja', en: 'My (Fem)' },
+          { mk: 'Мое', tr: 'Moe', en: 'My (Neut)' },
+          { mk: 'Твој', tr: 'Tvoj', en: 'Your (Masc)' },
+          { mk: 'Твоја', tr: 'Tvoja', en: 'Your (Fem)' },
+          { mk: 'Наш', tr: 'Nash', en: 'Our (Masc)' },
+          { mk: 'Ваш', tr: 'Vash', en: 'Your (Plural/Formal)' }
+        ],
+        grammarTables: [
+          {
+            title: 'Possessive Adjectives',
+            headers: ['Gender', 'My', 'Your', 'Example'],
+            rows: [
+              ['Masc', 'Мој', 'Твој', 'Мој брат'],
+              ['Fem', 'Моја', 'Твоја', 'Твоја сестра'],
+              ['Neut', 'Мое', 'Твое', 'Мое име']
+            ]
+          }
+        ],
+        quiz: [
+          { id: 'q53_1', type: 'fill-gap', question: '___ (My) татко се вика Јон.', options: ['Мој', 'Моја', 'Мое', 'Мои'], correctAnswer: 'Мој' },
+          { id: 'q53_2', type: 'fill-gap', question: 'Ова е ___ (your) мајка.', options: ['твоја', 'твој', 'твое', 'твои'], correctAnswer: 'твоја' },
+          { id: 'q53_3', type: 'translate', question: 'My child', options: ['Мое дете', 'Мој дете', 'Моја дете', 'Мои дете'], correctAnswer: 'Мое дете' },
+          { id: 'q53_4', type: 'translate', question: 'Our house', options: ['Наша куќа', 'Наш куќа', 'Наше куќа', 'Наши куќа'], correctAnswer: 'Наша куќа' },
+          { id: 'q53_5', type: 'multiple-choice', question: 'Which is "Your" (Masculine)?', options: ['Твој', 'Твоја', 'Твое', 'Твои'], correctAnswer: 'Твој' },
+          { id: 'q53_6', type: 'fill-gap', question: 'Каде е ___ (your - formal) пасош?', options: ['вашиот', 'ваша', 'ваше', 'ваши'], correctAnswer: 'вашиот' },
+          { id: 'q53_7', type: 'translate', question: 'My sister', options: ['Моја сестра', 'Мој сестра', 'Мое сестра', 'Твоја сестра'], correctAnswer: 'Моја сестра' },
+          { id: 'q53_8', type: 'fill-gap', question: 'Ова е ___ (our) стан.', options: ['наш', 'наша', 'наше', 'наши'], correctAnswer: 'наш' },
+          { id: 'q53_9', type: 'translate', question: 'Your brother', options: ['Твој брат', 'Твоја брат', 'Твое брат', 'Мој брат'], correctAnswer: 'Твој брат' },
+          { id: 'q53_10', type: 'multiple-choice', question: 'Is "Мое" masculine, feminine, or neuter?', options: ['Neuter', 'Masculine', 'Feminine'], correctAnswer: 'Neuter' }
+        ]
+      },
+
+      // LEVEL 4: Story - Family Intro
+      {
+        id: 'm5_l4_story_family',
+        title: 'Level 4: Story - Meet the Family',
+        theory: [
+          "👨‍👩‍👧‍👦 **Story Time: Introduction**",
+          "Read how Elena introduces her family. Look for possessives (Мој, Моја) and verb 'To Be' (е/се).",
+          "---",
+          "Здраво, јас сум Елена.",
+          "Ова е **моето семејство** (my family).",
+          "Ова е **мојот татко**. Тој се вика Петар. Тој е полицаец.",
+          "Ова е **мојата мајка**. Таа се вика Марија. Таа не работи.",
+          "Имам и еден **брат**. Тој се вика Александар.",
+          "Ние живееме во Охрид. **Нашиот град** е многу убав."
+        ],
+        vocabulary: [
+          { mk: 'Се вика', tr: 'Se vika', en: 'Is called / Name is' },
+          { mk: 'Полицаец', tr: 'Policaec', en: 'Policeman' },
+          { mk: 'Работи', tr: 'Raboti', en: 'Works' },
+          { mk: 'Живееме', tr: 'Zhiveeme', en: 'We live' },
+          { mk: 'Многу', tr: 'Mnogu', en: 'Very / Many' }
+        ],
+        grammarTables: [],
+        quiz: [
+          { id: 'q54_1', type: 'multiple-choice', question: "What does 'Се вика' mean?", options: ['Is called', 'Works', 'Lives', 'Eats'], correctAnswer: 'Is called' },
+          { id: 'q54_2', type: 'translate', question: 'We live in Ohrid.', options: ['Ние живееме во Охрид', 'Ние работиме во Охрид', 'Ние сме од Охрид', 'Ние одиме во Охрид'], correctAnswer: 'Ние живееме во Охрид' },
+          { id: 'q54_3', type: 'fill-gap', question: 'Мојот татко е ___ (policeman).', options: ['полицаец', 'доктор', 'учител', 'таксист'], correctAnswer: 'полицаец' },
+          { id: 'q54_4', type: 'multiple-choice', question: "Јас сум Елена. What does 'Јас сум' mean?", options: ['I am', 'You are', 'He is', 'We are'], correctAnswer: 'I am' },
+          { id: 'q54_5', type: 'fill-gap', question: 'Тој ___ (is called) Александар.', options: ['се вика', 'се смее', 'се јаде', 'се гледа'], correctAnswer: 'се вика' },
+          { id: 'q54_6', type: 'translate', question: 'My family', options: ['Моето семејство', 'Мојата семејство', 'Мојот семејство', 'Мои семејство'], correctAnswer: 'Моето семејство' },
+          { id: 'q54_7', type: 'translate', question: 'Very beautiful', options: ['Многу убав', 'Малку убав', 'Не убав', 'Лош'], correctAnswer: 'Многу убав' },
+          { id: 'q54_8', type: 'fill-gap', question: 'Ова е ___ (my) мајка.', options: ['мојата', 'мојот', 'моето', 'моите'], correctAnswer: 'мојата' },
+          { id: 'q54_9', type: 'multiple-choice', question: 'Таа не работи. What does "не работи" mean?', options: ['Does not work', 'Works', 'Lives', 'Eats'], correctAnswer: 'Does not work' },
+          { id: 'q54_10', type: 'translate', question: 'Our city', options: ['Нашиот град', 'Нашата град', 'Нашето град', 'Наши град'], correctAnswer: 'Нашиот град' }
+        ]
+      },
+
+      // LEVEL 5: How much? (Numbers & Quantities)
+      {
+        id: 'm5_l5_quantities',
+        title: 'Level 5: How much / How many',
+        theory: [
+          "To ask about quantity, we use **Колку (Kolku)**.",
+          "**Колку чини?** = How much does it cost?",
+          "**Колку години имаш?** = How old are you? (Lit: How many years do you have?)",
+          "**Колку е часот?** = What time is it?",
+          "---",
+          "Remember plurals:",
+          "Еден брат (One brother) -> Два **браќа** (Two brothers - *Irregular!*).",
+          "Една сестра -> Две **сестри**.",
+          "Едно дете -> Три **деца**."
+        ],
+        vocabulary: [
+          { mk: 'Колку', tr: 'Kolku', en: 'How much/many' },
+          { mk: 'Години', tr: 'Godini', en: 'Years' },
+          { mk: 'Чини', tr: 'Chini', en: 'Costs' },
+          { mk: 'Часот', tr: 'Chasot', en: 'The time/hour' },
+          { mk: 'Браќа', tr: 'Brakja', en: 'Brothers (Irregular)' },
+          { mk: 'Сестри', tr: 'Sestri', en: 'Sisters' }
+        ],
+        grammarTables: [
+          {
+            title: 'Useful Questions',
+            headers: ['Question', 'English'],
+            rows: [
+              ['Колку чини ова?', 'How much is this?'],
+              ['Колку е часот?', 'What time is it?'],
+              ['Колку години имаш?', 'How old are you?']
+            ]
+          }
+        ],
+        quiz: [
+          { id: 'q55_1', type: 'translate', question: 'How much?', options: ['Колку?', 'Што?', 'Каде?', 'Кога?'], correctAnswer: 'Колку?' },
+          { id: 'q55_2', type: 'fill-gap', question: 'Колку ___ (years) имаш?', options: ['години', 'дена', 'саати', 'месеци'], correctAnswer: 'години' },
+          { id: 'q55_3', type: 'translate', question: 'Two brothers', options: ['Два браќа', 'Два брати', 'Две браќа', 'Два брат'], correctAnswer: 'Два браќа' },
+          { id: 'q55_4', type: 'fill-gap', question: 'Колку ___ (costs) ова?', options: ['чини', 'прави', 'има', 'е'], correctAnswer: 'чини' },
+          { id: 'q55_5', type: 'translate', question: 'Three sisters', options: ['Три сестри', 'Три сестра', 'Три сестрови', 'Три сестрин'], correctAnswer: 'Три сестри' },
+          { id: 'q55_6', type: 'multiple-choice', question: 'Translate "What time is it?"', options: ['Колку е часот?', 'Што е време?', 'Каде е саатот?', 'Кога е време?'], correctAnswer: 'Колку е часот?' },
+          { id: 'q55_7', type: 'fill-gap', question: 'Имам пет ___ (children).', options: ['деца', 'дете', 'деци', 'дет'], correctAnswer: 'деца' },
+          { id: 'q55_8', type: 'translate', question: 'I am 20 years old.', options: ['Имам 20 години', 'Сум 20 години', 'Правам 20 години', 'Одам 20 години'], correctAnswer: 'Имам 20 години' },
+          { id: 'q55_9', type: 'multiple-choice', question: 'Is "Браќа" singular or plural?', options: ['Plural', 'Singular'], correctAnswer: 'Plural' },
+          { id: 'q55_10', type: 'fill-gap', question: '___ (How many) луѓе има?', options: ['Колку', 'Што', 'Каде', 'Кој'], correctAnswer: 'Колку' }
+        ]
+      }
+    ]
+  },
+  // --- MODULE 6: DESCRIPTIONS ---
+  {
+    id: 'mod_6',
+    title: '🎨 Module 6: The Colorful World',
+    description: 'Describe the world around you. Colors, sizes, pointing, and shopping.',
+    lessons: [
+      // LEVEL 1: Colors
+      {
+        id: 'm6_l1_colors',
+        title: 'Level 1: Colors & Agreement',
+        theory: [
+          "Adjectives (Description words) behave exactly like chameleons 🦎. They change their ending to match the **Gender** of the noun.",
+          "Let's look at the color **Црвен** (Red).",
+          "---",
+          "🟦 **Masculine**: Црвен автобус (Red bus). Ends in consonant.",
+          "🟥 **Feminine**: Црвен**а** маица (Red t-shirt). Ends in -A.",
+          "🟩 **Neuter**: Црвен**о** јаболко (Red apple). Ends in -O.",
+          "👥 **Plural**: Црвен**и** јаболка (Red apples). Ends in -I."
+        ],
+        vocabulary: [
+          { mk: 'Црвен', tr: 'Crven', en: 'Red' },
+          { mk: 'Црн', tr: 'Crn', en: 'Black' },
+          { mk: 'Бел', tr: 'Bel', en: 'White' },
+          { mk: 'Син', tr: 'Sin', en: 'Blue' },
+          { mk: 'Зелен', tr: 'Zelen', en: 'Green' },
+          { mk: 'Жолт', tr: 'Zholt', en: 'Yellow' },
+          { mk: 'Боја', tr: 'Boja', en: 'Color' }
+        ],
+        grammarTables: [
+          {
+            title: 'Adjective Agreement (Red)',
+            headers: ['Gender', 'Macedonian', 'Example'],
+            rows: [
+              ['Masc', 'Црвен', 'Црвен автомобил'],
+              ['Fem', 'Црвена', 'Црвена роза'],
+              ['Neut', 'Црвено', 'Црвено знаме'],
+              ['Plural', 'Црвени', 'Црвени чевли']
+            ]
+          }
+        ],
+        quiz: [
+          { id: 'q61_1', type: 'translate', question: 'Red', options: ['Црвен', 'Црн', 'Бел', 'Син'], correctAnswer: 'Црвен' },
+          { id: 'q61_2', type: 'fill-gap', question: 'Ова е ___ (white) куќа.', options: ['бела', 'бел', 'бело', 'бели'], correctAnswer: 'бела' },
+          { id: 'q61_3', type: 'translate', question: 'Green', options: ['Зелен', 'Жолт', 'Сив', 'Кафен'], correctAnswer: 'Зелен' },
+          { id: 'q61_4', type: 'fill-gap', question: 'Имам ___ (black) мачка.', options: ['црна', 'црн', 'црно', 'црни'], correctAnswer: 'црна' },
+          { id: 'q61_5', type: 'multiple-choice', question: 'Agreement for Neuter nouns?', options: ['-о', '-а', '-и', 'Consonant'], correctAnswer: '-о' },
+          { id: 'q61_6', type: 'translate', question: 'Blue car (Automobil - M)', options: ['Син автомобил', 'Сина автомобил', 'Сино автомобил', 'Сини автомобил'], correctAnswer: 'Син автомобил' },
+          { id: 'q61_7', type: 'translate', question: 'Yellow', options: ['Жолт', 'Зелен', 'Црвен', 'Бел'], correctAnswer: 'Жолт' },
+          { id: 'q61_8', type: 'fill-gap', question: 'Сакам ___ (red) вино (n).', options: ['црвено', 'црвена', 'црвен', 'црвени'], correctAnswer: 'црвено' },
+          { id: 'q61_9', type: 'multiple-choice', question: 'Translate "Color"', options: ['Боја', 'Слика', 'Книга', 'Време'], correctAnswer: 'Боја' },
+          { id: 'q61_10', type: 'fill-gap', question: 'Тие се ___ (green) јаболка (pl).', options: ['зелени', 'зелена', 'зелено', 'зелен'], correctAnswer: 'зелени' }
+        ]
+      },
+
+      // LEVEL 2: Opposites (Size & Quality)
+      {
+        id: 'm6_l2_opposites',
+        title: 'Level 2: Big, Small, New, Old',
+        theory: [
+          "Let's describe objects using opposites.",
+          "**Голем** (Big) vs **Мал** (Small).",
+          "**Нов** (New) vs **Стар** (Old).",
+          "**Добар** (Good) vs **Лош** (Bad).",
+          "---",
+          "Remember the 'The' rule from Module 3? If you say 'The big house', the suffix goes on the ADJECTIVE!",
+          "**Големата** куќа (The big house). **Новиот** автомобил (The new car)."
+        ],
+        vocabulary: [
+          { mk: 'Голем', tr: 'Golem', en: 'Big' },
+          { mk: 'Мал', tr: 'Mal', en: 'Small' },
+          { mk: 'Нов', tr: 'Nov', en: 'New' },
+          { mk: 'Стар', tr: 'Star', en: 'Old' },
+          { mk: 'Скап', tr: 'Skap', en: 'Expensive' },
+          { mk: 'Евтин', tr: 'Evtin', en: 'Cheap' },
+          { mk: 'Автомобил', tr: 'Avtomobil', en: 'Car (Automobile)' }
+        ],
+        grammarTables: [
+          {
+            title: 'Common Opposites',
+            headers: ['Macedonian', 'English'],
+            rows: [
+              ['Голем - Мал', 'Big - Small'],
+              ['Нов - Стар', 'New - Old'],
+              ['Скап - Евтин', 'Expensive - Cheap'],
+              ['Добар - Лош', 'Good - Bad']
+            ]
+          }
+        ],
+        quiz: [
+          { id: 'q62_1', type: 'translate', question: 'Small', options: ['Мал', 'Голем', 'Нов', 'Стар'], correctAnswer: 'Мал' },
+          { id: 'q62_2', type: 'fill-gap', question: 'Ова е ___ (new) книга.', options: ['нова', 'нов', 'ново', 'нови'], correctAnswer: 'нова' },
+          { id: 'q62_3', type: 'translate', question: 'Expensive', options: ['Скап', 'Евтин', 'Убав', 'Грд'], correctAnswer: 'Скап' },
+          { id: 'q62_4', type: 'translate', question: 'Old man', options: ['Стар човек', 'Стара човек', 'Старо човек', 'Стари човек'], correctAnswer: 'Стар човек' },
+          { id: 'q62_5', type: 'fill-gap', question: 'Сакам ___ (big) пица.', options: ['голема', 'голем', 'големо', 'големи'], correctAnswer: 'голема' },
+          { id: 'q62_6', type: 'multiple-choice', question: 'Translate "Cheap"', options: ['Евтин', 'Скап', 'Лош', 'Добар'], correctAnswer: 'Евтин' },
+          { id: 'q62_7', type: 'translate', question: 'Automobile', options: ['Автомобил', 'Автобус', 'Авион', 'Велосипед'], correctAnswer: 'Автомобил' },
+          { id: 'q62_8', type: 'fill-gap', question: 'Тој има ___ (small) куче.', options: ['мало', 'мал', 'мала', 'мали'], correctAnswer: 'мало' },
+          { id: 'q62_9', type: 'translate', question: 'New', options: ['Нов', 'Стар', 'Млад', 'Убав'], correctAnswer: 'Нов' },
+          { id: 'q62_10', type: 'multiple-choice', question: 'Opposite of "Good"?', options: ['Лош', 'Добар', 'Мал', 'Голем'], correctAnswer: 'Лош' }
+        ]
+      },
+
+      // LEVEL 3: Demonstratives (Pointing)
+      {
+        id: 'm6_l3_this_that',
+        title: 'Level 3: This and That',
+        theory: [
+          "When pointing at things, you need to know the gender of the thing you are pointing at.",
+          "**This (Close):**",
+          "👉 **Овој** (Masc), **Оваа** (Fem), **Ова** (Neut).",
+          "---",
+          "**That (Far):**",
+          "👉 **Оној** (Masc), **Онаа** (Fem), **Она** (Neut).",
+          "**Tip:** **Ова** (Neuter) is also used for general statements like 'What is this?' (Што е **ова**?) when you don't know the object yet."
+        ],
+        vocabulary: [
+          { mk: 'Ова', tr: 'Ova', en: 'This (General/Neut)' },
+          { mk: 'Овој', tr: 'Ovoj', en: 'This (Masc)' },
+          { mk: 'Оваа', tr: 'Ovaa', en: 'This (Fem)' },
+          { mk: 'Она', tr: 'Ona', en: 'That (Neut)' },
+          { mk: 'Оној', tr: 'Onoj', en: 'That (Masc)' },
+          { mk: 'Онаа', tr: 'Onaa', en: 'That (Fem)' },
+          { mk: 'Човек', tr: 'Chovek', en: 'Person/Man' }
+        ],
+        grammarTables: [
+          {
+            title: 'Pointing at things',
+            headers: ['Gender', 'This (Near)', 'That (Far)'],
+            rows: [
+              ['Masc', 'Овој', 'Оној'],
+              ['Fem', 'Оваа', 'Онаа'],
+              ['Neut', 'Ова', 'Она']
+            ]
+          }
+        ],
+        quiz: [
+          { id: 'q63_1', type: 'fill-gap', question: '___ (This) жена е убава.', options: ['Оваа', 'Овој', 'Ова', 'Оние'], correctAnswer: 'Оваа' },
+          { id: 'q63_2', type: 'translate', question: 'This man', options: ['Овој човек', 'Оваа човек', 'Ова човек', 'Оние човек'], correctAnswer: 'Овој човек' },
+          { id: 'q63_3', type: 'multiple-choice', question: 'General "This" (What is this?)', options: ['Ова', 'Овој', 'Оваа', 'Она'], correctAnswer: 'Ова' },
+          { id: 'q63_4', type: 'fill-gap', question: '___ (That) село е далеку.', options: ['Она', 'Онаа', 'Оној', 'Овие'], correctAnswer: 'Она' },
+          { id: 'q63_5', type: 'translate', question: 'That woman', options: ['Онаа жена', 'Оној жена', 'Она жена', 'Оние жена'], correctAnswer: 'Онаа жена' },
+          { id: 'q63_6', type: 'translate', question: 'This child', options: ['Ова дете', 'Овој дете', 'Оваа дете', 'Оние дете'], correctAnswer: 'Ова дете' },
+          { id: 'q63_7', type: 'fill-gap', question: 'Што е ___ (that)?', options: ['она', 'оној', 'онаа', 'овие'], correctAnswer: 'она' },
+          { id: 'q63_8', type: 'translate', question: 'This park', options: ['Овој парк', 'Оваа парк', 'Ова парк', 'Оние парк'], correctAnswer: 'Овој парк' },
+          { id: 'q63_9', type: 'multiple-choice', question: 'Translate "Person"', options: ['Човек', 'Луѓе', 'Дете', 'Маж'], correctAnswer: 'Човек' },
+          { id: 'q63_10', type: 'fill-gap', question: '___ (This) книга е нова.', options: ['Оваа', 'Овој', 'Ова', 'Оние'], correctAnswer: 'Оваа' }
+        ]
+      },
+
+      // LEVEL 4: STORY
+      {
+        id: 'm6_l4_story_apartment',
+        title: 'Level 4: Story - The New Apartment',
+        theory: [
+          "🏠 **Story Time: Moving In**",
+          "Read the description of a new apartment. Pay attention to the adjectives (in bold) and how they match the nouns.",
+          "---",
+          "Здраво! Ова е мојот **нов** стан. (This is my new apartment.)",
+          "Станот е **голем**. (The apartment is big.)",
+          "Имам **убава** соба. (I have a beautiful room.)",
+          "Ѕидовите се **бели**. (The walls are white.)",
+          "Во собата има **црвен** кревет и **стара** маса. (In the room there is a red bed and an old table.)",
+          "Многу сум **среќен**! (I am very happy!)"
+        ],
+        vocabulary: [
+          { mk: 'Стан', tr: 'Stan', en: 'Apartment' },
+          { mk: 'Ѕид', tr: 'Dzid', en: 'Wall' },
+          { mk: 'Ѕидови', tr: 'Dzidovi', en: 'Walls' },
+          { mk: 'Кревет', tr: 'Krevet', en: 'Bed' },
+          { mk: 'Соба', tr: 'Soba', en: 'Room' }
+        ],
+        grammarTables: [],
+        quiz: [
+          { id: 'q64_1', type: 'translate', question: 'Apartment', options: ['Стан', 'Куќа', 'Соба', 'Хотел'], correctAnswer: 'Стан' },
+          { id: 'q64_2', type: 'translate', question: 'Wall', options: ['Ѕид', 'Под', 'Таван', 'Врата'], correctAnswer: 'Ѕид' },
+          { id: 'q64_3', type: 'fill-gap', question: 'Имам ___ (red) кревет.', options: ['црвен', 'црвена', 'црвено', 'црвени'], correctAnswer: 'црвен' },
+          { id: 'q64_4', type: 'fill-gap', question: 'Станот е ___ (big).', options: ['голем', 'голема', 'големо', 'големи'], correctAnswer: 'голем' },
+          { id: 'q64_5', type: 'translate', question: 'White', options: ['Бел', 'Црн', 'Син', 'Жолт'], correctAnswer: 'Бел' },
+          { id: 'q64_6', type: 'translate', question: 'Bed', options: ['Кревет', 'Маса', 'Стол', 'Фотеља'], correctAnswer: 'Кревет' },
+          { id: 'q64_7', type: 'fill-gap', question: 'Ова е ___ (beautiful) соба.', options: ['убава', 'убав', 'убаво', 'убави'], correctAnswer: 'убава' },
+          { id: 'q64_8', type: 'multiple-choice', question: 'Plural of "Wall"?', options: ['Ѕидови', 'Ѕиди', 'Ѕида', 'Ѕид'], correctAnswer: 'Ѕидови' },
+          { id: 'q64_9', type: 'translate', question: 'Old', options: ['Стар', 'Нов', 'Млад', 'Добар'], correctAnswer: 'Стар' },
+          { id: 'q64_10', type: 'fill-gap', question: 'Тие се ___ (white) ѕидови.', options: ['бели', 'бела', 'бело', 'бел'], correctAnswer: 'бели' }
+        ]
+      },
+
+      // LEVEL 5: Numbers 10-100 & Shopping
+      {
+        id: 'm6_l5_numbers_money',
+        title: 'Level 5: Big Numbers & Money',
+        theory: [
+          "Let's count money! 💸",
+          "**10** = Десет. **20** = Дваесет. **30** = Триесет.",
+          "**50** = Педесет. **100** = Сто.",
+          "---",
+          "To ask price: **Колку чини?** (How much does it cost?)",
+          "The currency in Macedonia is **Денар (Denar)**. Plural: **Денари (Denari)**.",
+          "Example: **Ова чини сто денари.** (This costs 100 denars)."
+        ],
+        vocabulary: [
+          { mk: 'Десет', tr: 'Deset', en: '10 (Ten)' },
+          { mk: 'Дваесет', tr: 'Dvaeset', en: '20 (Twenty)' },
+          { mk: 'Педесет', tr: 'Pedeset', en: '50 (Fifty)' },
+          { mk: 'Сто', tr: 'Sto', en: '100 (One Hundred)' },
+          { mk: 'Илјада', tr: 'Iljada', en: '1000 (Thousand)' },
+          { mk: 'Денар', tr: 'Denar', en: 'Denar (Currency)' }
+        ],
+        grammarTables: [
+          {
+            title: 'Counting by Tens',
+            headers: ['Number', 'Macedonian'],
+            rows: [
+              ['10', 'Десет'],
+              ['20', 'Дваесет'],
+              ['30', 'Триесет'],
+              ['50', 'Педесет'],
+              ['100', 'Сто']
+            ]
+          }
+        ],
+        quiz: [
+          { id: 'q65_1', type: 'translate', question: '100', options: ['Сто', 'Десет', 'Илјада', 'Педесет'], correctAnswer: 'Сто' },
+          { id: 'q65_2', type: 'translate', question: 'Currency of Macedonia', options: ['Денар', 'Евро', 'Долар', 'Леки'], correctAnswer: 'Денар' },
+          { id: 'q65_3', type: 'translate', question: 'Twenty', options: ['Дваесет', 'Дванаесет', 'Два', 'Десет'], correctAnswer: 'Дваесет' },
+          { id: 'q65_4', type: 'fill-gap', question: 'Ова чини 50 ___ (denars).', options: ['денари', 'денар', 'денара', 'пари'], correctAnswer: 'денари' },
+          { id: 'q65_5', type: 'translate', question: 'Fifty', options: ['Педесет', 'Пет', 'Петнаесет', 'Пето'], correctAnswer: 'Педесет' },
+          { id: 'q65_6', type: 'multiple-choice', question: 'Translate "Expensive"', options: ['Скапо', 'Евтино', 'Малку', 'Многу'], correctAnswer: 'Скапо' },
+          { id: 'q65_7', type: 'translate', question: 'Ten', options: ['Десет', 'Девет', 'Еден', 'Сто'], correctAnswer: 'Десет' },
+          { id: 'q65_8', type: 'fill-gap', question: 'Колку ___ (costs) ова?', options: ['чини', 'прави', 'вреди', 'кошта'], correctAnswer: 'чини' },
+          { id: 'q65_9', type: 'translate', question: 'Thousand', options: ['Илјада', 'Сто', 'Милион', 'Нула'], correctAnswer: 'Илјада' },
+          { id: 'q65_10', type: 'fill-gap', question: 'Ова е многу ___ (cheap).', options: ['евтино', 'скапо', 'убаво', 'добро'], correctAnswer: 'евтино' }
+        ]
+      }
+    ]
+  }
+];
+
+export const COURSE_DATA: Module[] = RAW_MODULES.map(mod => ({
+  ...mod,
+  lessons: mod.lessons.map(lesson => {
+    // 1. Connect Question
+    const connectQ = createConnectQuestion(lesson.vocabulary, lesson.id);
+    
+    // 2. Smart Grammar Questions
+    const grammarQs = createGrammarQuestions(lesson.grammarTables, lesson.id);
+
+    console.log(`Lesson ${lesson.id} - Added ${connectQ ? 1 : 0} connect question(s) and ${grammarQs.length} grammar question(s).`);
+    console.log(grammarQs);
+
+    // 3. Merge
+    const updatedQuiz = [...lesson.quiz];
+    if (connectQ) updatedQuiz.push(connectQ);
+    if (grammarQs.length > 0) updatedQuiz.push(...grammarQs);
+
+    return {
+      ...lesson,
+      quiz: updatedQuiz
+    };
+  }),
+  exam: createExam(mod.lessons, mod.id)
+}));
